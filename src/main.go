@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"log/slog"
 	"os"
 
@@ -50,11 +49,14 @@ func run(w *app.Window) error {
 
 	// Initialize theme
 	theme := material.NewTheme()
-	theme.ContrastBg = color.NRGBA{R: 230, G: 230, B: 230, A: 255}
+	// theme.ContrastBg = color.NRGBA{R: 230, G: 230, B: 230, A: 255}
 	theme.TextSize = 20
 
-	// Select view
+	// Views
 	selectView := view.NewSelectView(theme)
+	patientView := view.NewPatientView(theme)
+
+	var currentView view.View = selectView
 
 	for {
 		// Read and process next event
@@ -77,9 +79,24 @@ func run(w *app.Window) error {
 					processKeyboardEvent(w, event)
 				}
 			}
-			selectView.Layout(gtx)
+			currentView.Layout(gtx)
 			area.Pop()
 			e.Frame(gtx.Ops)
+		}
+
+		// Check for view events
+		select {
+		case e := <-view.ViewEventChan:
+			switch e {
+			case view.OpenPatientView:
+				currentView = patientView
+			case view.OpenSelectView:
+				currentView = selectView
+				selectView.ReloadPatientList()
+			}
+
+		default:
+			// No View event
 		}
 	}
 }

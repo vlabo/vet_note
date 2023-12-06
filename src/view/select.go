@@ -1,75 +1,13 @@
 package view
 
 import (
-	"image"
-
 	"gioui.org/layout"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"github.com/sahilm/fuzzy"
-	"github.com/vlabo/vet_note/src/model"
+	"github.com/vlabo/vet_note/src/storage"
 )
-
-type PatientEntry struct {
-	theme      *material.Theme
-	name       material.LabelStyle
-	owner      material.LabelStyle
-	searchText string
-}
-
-func (e *PatientEntry) asWidget(gtx layout.Context) layout.Dimensions {
-	return layout.Stack{}.Layout(gtx,
-		// Draw entry background
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-			// Apply round corners
-			const r = 4 // roundness
-			bounds := image.Rectangle{Min: image.Point{0, 0}, Max: gtx.Constraints.Min}
-			stackClip := clip.RRect{Rect: bounds, SE: r, SW: r, NW: r, NE: r}.Push(gtx.Ops)
-			defer stackClip.Pop()
-			// Draw rect, with previously applied round corners
-			defer clip.Rect{Max: gtx.Constraints.Min}.Push(gtx.Ops).Pop()
-			paint.ColorOp{Color: e.theme.ContrastBg}.Add(gtx.Ops)
-			paint.PaintOp{}.Add(gtx.Ops)
-			return layout.Dimensions{Size: gtx.Constraints.Min}
-		}),
-		// Draw entry elements (name, owner...)
-		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-			margins := layout.Inset{
-				Top:    unit.Dp(10),
-				Bottom: unit.Dp(5),
-				Right:  unit.Dp(3),
-				Left:   unit.Dp(3),
-			}
-
-			return margins.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{}.Layout(gtx,
-					// Left
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return e.name.Layout(gtx)
-					}),
-					// Middle spacer
-					layout.Flexed(0.5, layout.Spacer{Width: 20}.Layout),
-					// Right
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return e.owner.Layout(gtx)
-					}),
-				)
-
-			})
-		}),
-	)
-}
-func newPatientEntry(theme *material.Theme, p model.Patient) PatientEntry {
-	return PatientEntry{
-		theme:      theme,
-		name:       material.Body1(theme, p.Name),
-		owner:      material.Body1(theme, p.Owner),
-		searchText: p.Name + p.Owner,
-	}
-}
 
 type PatientEntries []PatientEntry
 
@@ -89,6 +27,8 @@ type SelectView struct {
 
 	search      widget.Editor
 	patientList PatientEntries
+
+	newEntryButton widget.Clickable
 }
 
 // NewSelectView creates a new select view object
@@ -106,19 +46,29 @@ func NewSelectView(theme *material.Theme) *SelectView {
 	}
 
 	m.search.SetText("")
+	m.ReloadPatientList()
 
-	// for _, patient := range patients {
-	// 	m.patientList = append(m.patientList, newPatientEntry(theme, patient))
-	// }
-
-	// dataDir, err := app.DataDir()
-	// if err == nil {
-	// 	m.patientList = append(m.patientList, newPatientEntry(theme, Patient{name: dataDir}))
-	// }
 	return &m
 }
 
-func (m *SelectView) Layout(gtx layout.Context) {
+func (m *SelectView) ReloadPatientList() error {
+	patientList, err := storage.GetAllPatients()
+	if err != nil {
+		return err
+	}
+	m.patientList = nil
+	for _, patient := range patientList {
+		m.patientList = append(m.patientList, newPatientEntry(m.theme, patient))
+	}
+
+	return nil
+}
+
+func (m *SelectView) Layout(gtx layout.Context) layout.Dimensions {
+	if m.newEntryButton.Clicked(gtx) {
+		ViewEventChan <- OpenPatientView
+	}
+
 	widgets := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			e := material.Editor(m.theme, &m.search, "Hint")
@@ -148,7 +98,26 @@ func (m *SelectView) Layout(gtx layout.Context) {
 		}
 	}
 
-	material.List(m.theme, &m.layout).Layout(gtx, len(widgets), func(gtx layout.Context, i int) layout.Dimensions {
-		return layout.UniformInset(unit.Dp(2)).Layout(gtx, widgets[i])
-	})
+	return layout.Stack{}.Layout(gtx,
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return layout.Dimensions{Size: gtx.Constraints.Max}
+		}),
+		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return material.List(m.theme, &m.layout).Layout(gtx, len(widgets), func(gtx layout.Context, i int) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(2)).Layout(gtx, widgets[i])
+			})
+		}),
+		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Flexed(0.5, layout.Spacer{Width: 20}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return material.Button(m.theme, &m.newEntryButton, "New").Layout(gtx)
+				}),
+			)
+		}),
+	)
+
 }

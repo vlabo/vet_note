@@ -1,0 +1,105 @@
+
+package main
+
+import "fmt"
+
+templ page(contents templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/restored.js"></script>
+			<script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+			<script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"/>
+			<link href="/assets/fontawesome/css/fontawesome.css" rel="stylesheet"/>
+			<link href="/assets/fontawesome/css/solid.css" rel="stylesheet"/>
+			<link href="/assets/main.css" rel="stylesheet"/>
+		</head>
+		<body hx-boost="true">
+			<ion-content id="body">
+				@contents
+			</ion-content>
+		</body>
+	</html>
+}
+
+templ patientsComponent(patients []Patient) {
+	<div hx-boost="true">
+		<ion-searchbar></ion-searchbar>
+		<div hx-ext="restored" hx-trigger="load, restored" hx-get="/patient/list"></div>		
+		<ion-fab slot="fixed" vertical="bottom" horizontal="end">
+			<ion-fab-button href="/patient/new">
+				<ion-icon name="add"></ion-icon>
+			</ion-fab-button>
+		</ion-fab>
+	</div>
+}
+
+templ getPatientsList(patients []Patient) {
+	<ion-scroll id="scroll">
+		<ion-list>
+			<ion-list-header>
+				<ion-label>Name</ion-label>
+				<ion-label>Owner</ion-label>
+			</ion-list-header>
+			for _, p := range patients {
+				<ion-item hx-target="#body" hx-push-url="true" hx-get={ fmt.Sprintf("/patient/%s", p.Id) } button>
+					<ion-label>{ p.Name }</ion-label>
+					<ion-label>{ p.Owner }</ion-label>
+				</ion-item>
+			}
+		</ion-list>
+	</ion-scroll>
+}
+
+templ patientComponent(patient Patient) {
+	<ion-header hx-target="this" hx-swap="outerHTML">
+		<ion-toolbar>
+			<ion-grid>
+				<ion-row>
+					<ion-col size="1"><h2><i class="fa-solid fa-dog"></i></h2></ion-col>
+					<ion-col size="10"><h2><ion-label>{ patient.Name }</ion-label></h2></ion-col>
+					<ion-col size="1"><ion-button hx-get={ fmt.Sprintf("/patient/%s/edit", patient.Id) }><i class="fa-solid fa-pen-to-square"></i></ion-button></ion-col>
+				</ion-row>
+				<ion-row>
+					<ion-col size="1"><h4><i class="fa-solid fa-user"></i></h4></ion-col>
+					<ion-col><h4><ion-label>{ patient.Owner }</ion-label></h4></ion-col>
+				</ion-row>
+			</ion-grid>
+		</ion-toolbar>
+	</ion-header>
+}
+
+templ patientEditComponent(patient Patient) {
+	<ion-header hx-target="this" hx-swap="outerHTML">
+		<form hx-put={ fmt.Sprintf("/patient/%s", patient.Id) }>
+			<ion-toolbar>
+				<ion-grid>
+					<ion-row>
+						<ion-col size="1">
+							<h2><i class="fa-solid fa-dog"></i></h2>
+						</ion-col>
+						<ion-col size="8">
+							<h2><ion-input type="text" name="name" fill="solid" value={ patient.Name }></ion-input></h2>
+						</ion-col>
+						<ion-col size="3">
+							<ion-button type="submit" color="success">Submit</ion-button>
+							<ion-button color="danger" hx-get={ fmt.Sprintf("/patient/%s", patient.Id) }>Cancel</ion-button>
+						</ion-col>
+					</ion-row>
+					<ion-row>
+						<ion-col size="1">
+							<h4><i class="fa-solid fa-user"></i></h4>
+						</ion-col>
+						<ion-col size="8">
+							<h4><ion-input type="text" name="owner" fill="solid" value={ patient.Owner }></ion-input></h4>
+						</ion-col>
+					</ion-row>
+				</ion-grid>
+			</ion-toolbar>
+		</form>
+	</ion-header>
+}

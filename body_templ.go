@@ -12,7 +12,7 @@ import "bytes"
 
 import "fmt"
 
-func page(contents templ.Component) templ.Component {
+func mainWrapper(contents templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -44,7 +44,7 @@ func page(contents templ.Component) templ.Component {
 	})
 }
 
-func patientsComponent(patients []Patient) templ.Component {
+func renderMainView() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -57,7 +57,7 @@ func patientsComponent(patients []Patient) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-boost=\"true\"><ion-searchbar></ion-searchbar><div hx-ext=\"restored\" hx-trigger=\"load, restored\" hx-get=\"/patient/list\"></div><ion-fab slot=\"fixed\" vertical=\"bottom\" horizontal=\"end\"><ion-fab-button href=\"/patient/new\"><ion-icon name=\"add\"></ion-icon></ion-fab-button></ion-fab></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-boost=\"true\"><ion-searchbar name=\"search\" hx-post=\"/patient/search\" hx-trigger=\"input changed delay:100ms, search\" hx-target=\"#search-results\" hx-indicator=\".htmx-indicator\"></ion-searchbar><div id=\"search-results\" hx-ext=\"restored\" hx-trigger=\"load, restored\" hx-get=\"/patient/search\"></div><ion-fab slot=\"fixed\" vertical=\"bottom\" horizontal=\"end\"><ion-fab-button hx-get=\"/patient/new\" hx-target=\"#body\" hx-push-url=\"true\"><ion-icon name=\"add\"></ion-icon></ion-fab-button></ion-fab></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -68,7 +68,7 @@ func patientsComponent(patients []Patient) templ.Component {
 	})
 }
 
-func getPatientsList(patients []Patient) templ.Component {
+func renderPatientList(patients []Patient) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -101,7 +101,7 @@ func getPatientsList(patients []Patient) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 49, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 54, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -114,7 +114,7 @@ func getPatientsList(patients []Patient) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.Owner)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 50, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 55, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -136,7 +136,7 @@ func getPatientsList(patients []Patient) templ.Component {
 	})
 }
 
-func patientComponent(patient Patient) templ.Component {
+func renderPatient(patient *Patient) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -149,14 +149,14 @@ func patientComponent(patient Patient) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<ion-header hx-target=\"this\" hx-swap=\"outerHTML\"><ion-toolbar><ion-grid><ion-row><ion-col size=\"1\"><h2><i class=\"fa-solid fa-dog\"></i></h2></ion-col> <ion-col size=\"10\"><h2><ion-label>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"list-wrapper\"><ion-header hx-target=\"#list-wrapper\" hx-swap=\"innerHTML\"><ion-toolbar><ion-grid><ion-row><ion-col size=\"1\"><h2><i class=\"fa-solid fa-dog\"></i></h2></ion-col> <ion-col size=\"10\"><h2><ion-label>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 63, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 69, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -177,13 +177,13 @@ func patientComponent(patient Patient) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Owner)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 68, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 74, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label></h4></ion-col></ion-row></ion-grid></ion-toolbar></ion-header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label></h4></ion-col></ion-row></ion-grid></ion-toolbar></ion-header> <ion-button fill=\"clear\" expand=\"block\">New Entry</ion-button> <ion-list><ion-item button=\"true\" id=\"present-alert\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2024</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert1\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2023</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert2\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2022</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert3\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2021</ion-label></ion-item></ion-list> <ion-alert id=\"alert1\" trigger=\"present-alert\" header=\"Vaccine\" message=\"Made on 30.6.2024\"></ion-alert> <ion-alert id=\"alert2\" trigger=\"present-alert1\" header=\"Vaccine\" message=\"Made on 30.6.2023\"></ion-alert> <ion-alert trigger=\"present-alert2\" header=\"Vaccine\" message=\"Made on 30.6.2022\"></ion-alert> <ion-alert trigger=\"present-alert3\" header=\"Vaccine\" message=\"Made on 30.6.2021\"></ion-alert></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -194,7 +194,7 @@ func patientComponent(patient Patient) templ.Component {
 	})
 }
 
-func patientEditComponent(patient Patient) templ.Component {
+func renderPatientEdit(patient *Patient) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {

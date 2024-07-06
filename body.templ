@@ -1,7 +1,10 @@
 
 package main
 
-import "fmt"
+import (
+    "fmt"
+    "time"
+		"strconv" )
 
 templ mainWrapper(contents templ.Component) {
 	<!DOCTYPE html>
@@ -77,48 +80,111 @@ templ renderPatient(patient *Patient) {
 				</ion-grid>
 			</ion-toolbar>
 		</ion-header>
-		<ion-button fill="clear" expand="block">New Entry</ion-button>
+		<ion-button fill="clear" expand="block" hx-target="#body" hx-push-url="true" hx-get={ fmt.Sprintf("/examination/new/%s", patient.Id) }>New Entry</ion-button>
 		<ion-list>
-		  <ion-item button="true" id="present-alert">
-		    <ion-label>Vaccine</ion-label>
-			  <ion-label color="medium">6.30.2024</ion-label>
-		  </ion-item>
-		  <ion-item button="true" id="present-alert1">
-		    <ion-label>Vaccine</ion-label>
-			  <ion-label color="medium">6.30.2023</ion-label>
-		  </ion-item>
-		  <ion-item button="true" id="present-alert2">
-		    <ion-label>Vaccine</ion-label>
-			  <ion-label color="medium">6.30.2022</ion-label>
-		  </ion-item>
-		  <ion-item button="true" id="present-alert3">
-		    <ion-label>Vaccine</ion-label>
-			  <ion-label color="medium">6.30.2021</ion-label>
-		  </ion-item>
-		</ion-list>
-		<ion-alert
-			id="alert1"
-		  trigger="present-alert"
-		  header="Vaccine"
-		  message="Made on 30.6.2024"
-		></ion-alert>
-		<ion-alert
-			id="alert2"
-		  trigger="present-alert1"
-		  header="Vaccine"
-		  message="Made on 30.6.2023"
-		></ion-alert>
-		<ion-alert
-		  trigger="present-alert2"
-		  header="Vaccine"
-		  message="Made on 30.6.2022"
-		></ion-alert>
-		<ion-alert
-		  trigger="present-alert3"
-		  header="Vaccine"
-		  message="Made on 30.6.2021"
-		></ion-alert>
+        for i, examination := range patient.Examinations {
+						<ion-item button data-type={ examination.Type } data-date={ examination.Date.Format("02.01.2006") } data-description={ examination.Description } data-id={ strconv.Itoa(i) } onclick="showExaminationDetails(this)">
+                <ion-label>{ getExaminationTypeInBulgarian(examination.Type) }</ion-label>
+                <ion-label>{ examination.Date.Format("02.01.2006") }</ion-label>
+            </ion-item>
+        }
+     </ion-list>
 	</div>
+
+ <!-- Modal Component -->
+    <ion-modal id="examination-modal">
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>Examination Details</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button onclick="dismissModal()">Close</ion-button>
+                </ion-buttons>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content>
+            <ion-list>
+                <ion-item>
+                    <ion-label>Type</ion-label>
+                    <ion-label id="modal-type"></ion-label>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Date</ion-label>
+                    <ion-label id="modal-date"></ion-label>
+                </ion-item>
+                <ion-item>
+                    <ion-label>Description</ion-label>
+                    <ion-label id="modal-description"></ion-label>
+                </ion-item>
+            </ion-list>
+            <ion-button expand="full" id="modal-edit-button">Edit</ion-button>
+        </ion-content>
+    </ion-modal>
+
+    <script>
+        function showExaminationDetails(element) {
+            const type = element.getAttribute('data-type');
+            const date = element.getAttribute('data-date');
+            const description = element.getAttribute('data-description');
+            const id = element.getAttribute('data-id');
+
+            document.getElementById('modal-type').innerText = type;
+            document.getElementById('modal-date').innerText = date;
+            document.getElementById('modal-description').innerText = description;
+            document.getElementById('modal-edit-button').setAttribute('hx-get', `/examination/${id}/edit`);
+
+            const modal = document.getElementById('examination-modal');
+            modal.present();
+        }
+
+        function dismissModal() {
+            const modal = document.getElementById('examination-modal');
+            modal.dismiss();
+        }
+    </script>
+}
+
+func getExaminationTypeInBulgarian(examType string) string {
+    switch examType {
+    case "examination":
+        return "Преглед"
+    case "vaccine":
+        return "Ваксина"
+    case "surgery":
+        return "Операция"
+    case "catration":
+        return "Кастрация"
+    default:
+        return examType
+    }
+}
+
+templ renderNewExamination(patient *Patient) {
+    <form hx-post="/examination/new" hx-target="#body" hx-swap="innerHTML">
+				<ion-header>
+  					<input type="hidden" name="Id" value={ fmt.Sprintf("%s", patient.Id) }/>
+            <ion-toolbar>
+                <ion-title>{ patient.Name }</ion-title>
+                <ion-subtitle>Owner: { patient.Owner }</ion-subtitle>
+            </ion-toolbar>
+        </ion-header>
+        <ion-item>
+            <ion-datetime display-format="MM/DD/YYYY" placeholder="Избери Дата" name="Date" value={ time.Now().Format("2006-01-02T15:04:05.999Z") }></ion-datetime>
+        </ion-item>
+        <ion-item>
+            <ion-label>Тип</ion-label>
+            <ion-select name="Type" value="examination">
+                <ion-select-option value="examination">Преглед</ion-select-option>
+                <ion-select-option value="vaccine">Ваксина</ion-select-option>
+                <ion-select-option value="surgery">Операция</ion-select-option>
+                <ion-select-option value="catration">Кастрация</ion-select-option>
+            </ion-select>
+        </ion-item>
+        <ion-item>
+            <ion-label position="floating">Описание</ion-label>
+            <ion-textarea name="Description" placeholder="Въведи описание..."></ion-textarea>
+        </ion-item>
+        <ion-button type="submit" expand="block">Запази</ion-button>
+    </form>
 }
 
 templ renderPatientEdit(patient *Patient) {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -84,6 +85,64 @@ func patientList(c echo.Context) error {
 	return Render(c, http.StatusOK, renderPatientList(getPatientList(db)))
 }
 
+func newExamination(c echo.Context) error {
+	l := c.Logger()
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		id = uuid.New()
+	}
+	patient, err := getPatientById(db, id)
+	if err != nil {
+		l.Errorf("error getting patient: %v", err)
+		return c.NoContent(http.StatusOK)
+	}
+	if htmx.IsHTMX(c.Request()) {
+		return Render(c, http.StatusOK, renderNewExamination(patient))
+	} else {
+		return Render(c, http.StatusOK, mainWrapper(renderNewExamination(patient)))
+	}
+}
+
+func saveExamination(c echo.Context) error {
+	l := c.Logger()
+	id, err := uuid.Parse(c.FormValue("Id"))
+	if err != nil {
+		l.Errorf("invalid patient id: %v", err)
+		return c.String(http.StatusBadRequest, fmt.Sprintf("invalid id: %s", err))
+	}
+	l.Debugf("UUID: %s", id)
+
+	patient, err := getPatientById(db, id)
+	if err != nil {
+		l.Errorf("error getting patient: %v", err)
+		return c.String(http.StatusBadRequest, fmt.Sprintf("patient not found: %s", err))
+	}
+	// Get other form data
+	dateStr := c.FormValue("Date")
+	examType := c.FormValue("Type")
+	description := c.FormValue("Description")
+
+	// Parse the date
+	date, err := time.Parse("2006-01-02T15:04:05.999Z", dateStr)
+	if err != nil {
+		l.Errorf("failed to parse data %s: %v", dateStr, err)
+		return c.String(http.StatusBadRequest, "Invalid date format")
+	}
+
+	// Create a new examination
+	examination := Examination{
+		Date:        date,
+		Type:        examType,
+		Description: description,
+	}
+	patient.Examinations = append(patient.Examinations, examination)
+	if err := updatePatent(patient); err != nil {
+		return err
+	}
+
+	return Render(c, http.StatusOK, renderPatient(patient))
+}
+
 func patientSearch(c echo.Context) error {
 	searchTerm := ""
 	v, err := c.FormParams()
@@ -131,6 +190,8 @@ func main() {
 	engine.GET("/patient/:id", patient)
 	engine.GET("/patient/:id/edit", patientEdit)
 	engine.PUT("/patient/:id", patientUpdate)
+	engine.GET("/examination/new/:id", newExamination)
+	engine.POST("/examination/new", saveExamination)
 	engine.Static("/assets", "assets")
 
 	fmt.Println("Listening on :8080")

@@ -10,7 +10,11 @@ import "context"
 import "io"
 import "bytes"
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"time"
+)
 
 func mainWrapper(contents templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -101,7 +105,7 @@ func renderPatientList(patients []Patient) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 54, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 57, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -114,7 +118,7 @@ func renderPatientList(patients []Patient) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.Owner)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 55, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 58, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -156,7 +160,7 @@ func renderPatient(patient *Patient) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 69, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 72, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -177,13 +181,170 @@ func renderPatient(patient *Patient) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Owner)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 74, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 77, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label></h4></ion-col></ion-row></ion-grid></ion-toolbar></ion-header> <ion-button fill=\"clear\" expand=\"block\">New Entry</ion-button> <ion-list><ion-item button=\"true\" id=\"present-alert\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2024</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert1\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2023</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert2\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2022</ion-label></ion-item> <ion-item button=\"true\" id=\"present-alert3\"><ion-label>Vaccine</ion-label> <ion-label color=\"medium\">6.30.2021</ion-label></ion-item></ion-list> <ion-alert id=\"alert1\" trigger=\"present-alert\" header=\"Vaccine\" message=\"Made on 30.6.2024\"></ion-alert> <ion-alert id=\"alert2\" trigger=\"present-alert1\" header=\"Vaccine\" message=\"Made on 30.6.2023\"></ion-alert> <ion-alert trigger=\"present-alert2\" header=\"Vaccine\" message=\"Made on 30.6.2022\"></ion-alert> <ion-alert trigger=\"present-alert3\" header=\"Vaccine\" message=\"Made on 30.6.2021\"></ion-alert></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label></h4></ion-col></ion-row></ion-grid></ion-toolbar></ion-header> <ion-button fill=\"clear\" expand=\"block\" hx-target=\"#body\" hx-push-url=\"true\" hx-get=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("/examination/new/%s", patient.Id)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">New Entry</ion-button> <ion-list>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for i, examination := range patient.Examinations {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<ion-item button data-type=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(examination.Type))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" data-date=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(examination.Date.Format("02.01.2006")))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" data-description=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(examination.Description))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" data-id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(strconv.Itoa(i)))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" onclick=\"showExaminationDetails(this)\"><ion-label>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(getExaminationTypeInBulgarian(examination.Type))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 86, Col: 76}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label> <ion-label>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(examination.Date.Format("02.01.2006"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 87, Col: 66}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-label></ion-item>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-list></div><!-- Modal Component --><ion-modal id=\"examination-modal\"><ion-header><ion-toolbar><ion-title>Examination Details</ion-title> <ion-buttons slot=\"end\"><ion-button onclick=\"dismissModal()\">Close</ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content><ion-list><ion-item><ion-label>Type</ion-label> <ion-label id=\"modal-type\"></ion-label></ion-item> <ion-item><ion-label>Date</ion-label> <ion-label id=\"modal-date\"></ion-label></ion-item> <ion-item><ion-label>Description</ion-label> <ion-label id=\"modal-description\"></ion-label></ion-item></ion-list> <ion-button expand=\"full\" id=\"modal-edit-button\">Edit</ion-button></ion-content></ion-modal><script>\n        function showExaminationDetails(element) {\n            const type = element.getAttribute('data-type');\n            const date = element.getAttribute('data-date');\n            const description = element.getAttribute('data-description');\n            const id = element.getAttribute('data-id');\n\n            document.getElementById('modal-type').innerText = type;\n            document.getElementById('modal-date').innerText = date;\n            document.getElementById('modal-description').innerText = description;\n            document.getElementById('modal-edit-button').setAttribute('hx-get', `/examination/${id}/edit`);\n\n            const modal = document.getElementById('examination-modal');\n            modal.present();\n        }\n\n        function dismissModal() {\n            const modal = document.getElementById('examination-modal');\n            modal.dismiss();\n        }\n    </script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func getExaminationTypeInBulgarian(examType string) string {
+	switch examType {
+	case "examination":
+		return "Преглед"
+	case "vaccine":
+		return "Ваксина"
+	case "surgery":
+		return "Операция"
+	case "catration":
+		return "Кастрация"
+	default:
+		return examType
+	}
+}
+
+func renderNewExamination(patient *Patient) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/examination/new\" hx-target=\"#body\" hx-swap=\"innerHTML\"><ion-header><input type=\"hidden\" name=\"Id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("%s", patient.Id)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <ion-toolbar><ion-title>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 165, Col: 41}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-title> <ion-subtitle>Owner: ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(patient.Owner)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `body.templ`, Line: 166, Col: 52}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ion-subtitle></ion-toolbar></ion-header> <ion-item><ion-datetime display-format=\"MM/DD/YYYY\" placeholder=\"Избери Дата\" name=\"Date\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(time.Now().Format("2006-01-02T15:04:05.999Z")))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></ion-datetime></ion-item> <ion-item><ion-label>Тип</ion-label> <ion-select name=\"Type\" value=\"examination\"><ion-select-option value=\"examination\">Преглед</ion-select-option> <ion-select-option value=\"vaccine\">Ваксина</ion-select-option> <ion-select-option value=\"surgery\">Операция</ion-select-option> <ion-select-option value=\"catration\">Кастрация</ion-select-option></ion-select></ion-item> <ion-item><ion-label position=\"floating\">Описание</ion-label> <ion-textarea name=\"Description\" placeholder=\"Въведи описание...\"></ion-textarea></ion-item> <ion-button type=\"submit\" expand=\"block\">Запази</ion-button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -202,9 +363,9 @@ func renderPatientEdit(patient *Patient) templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<ion-header hx-target=\"this\" hx-swap=\"outerHTML\"><form hx-put=\"")

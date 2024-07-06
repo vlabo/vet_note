@@ -1,15 +1,23 @@
 package main
 
 import (
+	"time"
+
 	badger "github.com/dgraph-io/badger/v4"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/google/uuid"
 )
 
+type Examination struct {
+	Date        time.Time
+	Type        string
+	Description string
+}
 type Patient = struct {
-	Id    uuid.UUID
-	Name  string
-	Owner string
+	Id           uuid.UUID
+	Name         string
+	Owner        string
+	Examinations []Examination
 }
 
 func getPatientById(db *badger.DB, id uuid.UUID) (*Patient, error) {

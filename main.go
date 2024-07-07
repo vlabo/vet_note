@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 	"time"
@@ -169,6 +170,15 @@ func index(c echo.Context) error {
 	return Render(c, http.StatusOK, mainWrapper(renderMainView()))
 }
 
+func patients(c echo.Context) error {
+	list := getPatientList(db)
+	log.Printf("list: %+v", list)
+	return c.JSON(http.StatusOK, list)
+}
+
+//go:embed static/index.html
+var content embed.FS
+
 func main() {
 	var err error
 	db, err = badger.Open(badger.DefaultOptions("/tmp/badger"))
@@ -183,7 +193,14 @@ func main() {
 	engine.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
-	engine.GET("/", index)
+	engine.GET("/", func(c echo.Context) error {
+		data, err := content.ReadFile("static/index.html")
+		if err != nil {
+			return err
+		}
+		return c.Blob(http.StatusOK, "text/html", data)
+	})
+	engine.GET("/test", patients)
 	engine.GET("/patient/new", patientEdit)
 	engine.GET("/patient/search", patientSearch)
 	engine.POST("/patient/search", patientSearch)

@@ -54,7 +54,7 @@ templ renderPatientList(patients []Patient) {
 				<ion-label>Owner</ion-label>
 			</ion-list-header>
 			for _, p := range patients {
-				<ion-item hx-target="#body" hx-push-url="true" hx-get={ fmt.Sprintf("/patient/%s", p.Id) } button>
+				<ion-item href={ fmt.Sprintf("/patient/%s", p.Id) } button>
 					<ion-label>{ p.Name }</ion-label>
 					<ion-label>{ p.Owner }</ion-label>
 				</ion-item>

@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Edit Patient</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Name</ion-label>
+      <ion-input [(ngModel)]="patient.Name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Owner</ion-label>
+      <ion-input [(ngModel)]="patient.Owner"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Type</ion-label>
+      <ion-select [(ngModel)]="patient.Type">
+        <ion-select-option *ngFor="let type of types" [value]="type">{{ type }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ion-list>
+  <ion-button expand="full" (click)="save()">Save</ion-button>
+</ion-content>

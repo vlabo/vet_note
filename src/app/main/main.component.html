@@ -1,0 +1,20 @@
+<ion-content>
+  <ion-searchbar name="search" (ionInput)="onSearch($event)"></ion-searchbar>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button>
+      <ion-icon name="add" (click)="newPatient()"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Име</ion-label>
+      <ion-label>Собственик</ion-label>
+      <ion-label>Тип</ion-label>
+    </ion-list-header>
+    <ion-item *ngFor="let p of filteredPatients" button (click)="goToPatient(p.Id)">
+      <ion-label [innerHTML]="highlight(p, 'Name')"></ion-label>
+      <ion-label [innerHTML]="highlight(p, 'Owner')"></ion-label>
+      <ion-label [innerHTML]="highlight(p, 'Type')"></ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEditMode ? 'Edit' : 'View' }} Procedure</ion-title>
+    <ion-button slot="end" fill="clear" (click)="enableEditMode()" *ngIf="!isEditMode">Edit</ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form *ngIf="procedure">
+    <ion-item>
+      <ion-label position="stacked">Procedure Type</ion-label>
+      <ion-label *ngIf="!isEditMode">{{ procedure.Type }}</ion-label>
+      <ion-select id="procedureType" [(ngModel)]="procedure.Type" name="type" *ngIf="isEditMode">
+        <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+
+    <ion-item>
+      <ion-label position="stacked">Details</ion-label>
+      <ion-textarea [(ngModel)]="procedure.Details" name="details" [disabled]="!isEditMode"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-datetime displayFormat="MMM DD, YYYY" [(ngModel)]="procedure.Date" name="date"
+        [disabled]="!isEditMode"></ion-datetime>
+    </ion-item>
+
+    <ion-row *ngIf="isEditMode">
+      <ion-col>
+        <ion-button expand="block" (click)="saveProcedure()">Save</ion-button>
+      </ion-col>
+    </ion-row>
+
+  </form>
+</ion-content>

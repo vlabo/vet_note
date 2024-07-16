@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { add } from 'ionicons/icons';
 import { addIcons } from "ionicons";
@@ -13,6 +13,7 @@ import Fuse, { FuseResult } from 'fuse.js';
   standalone: true,
   imports: [IonicModule, CommonModule],
   styleUrls: ['./main.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class MainComponent implements OnInit {
   patients: Patient[] = [];
@@ -22,7 +23,7 @@ export class MainComponent implements OnInit {
 
   searchResult: FuseResult<Patient>[] | undefined;
 
-  constructor(private router: Router, private patientsService: PatientsService) {
+  constructor(private router: Router, private patientsService: PatientsService, private renderer: Renderer2) {
     this.fuse = new Fuse(this.patients, {
       keys: ['Name', 'Owner'],
       includeMatches: true,
@@ -74,7 +75,7 @@ export class MainComponent implements OnInit {
 
           var indices = match.indices.slice().reverse();
           indices.forEach(([start, end]) => {
-            highlightedText = highlightedText.substring(0, start) + '<b>' + highlightedText.substring(start, end + 1) + '</b>' + highlightedText.substring(end + 1);
+            highlightedText = highlightedText.substring(0, start) + '<span class="bold-blue">' + highlightedText.substring(start, end + 1) + '</span>' + highlightedText.substring(end + 1);
           });
         });
       });

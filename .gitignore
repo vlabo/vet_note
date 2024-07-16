@@ -21,3 +21,4 @@
 go.work
 tmp
 node_modules
+.angular/cache/18.0.7

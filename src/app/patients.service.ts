@@ -10,14 +10,15 @@ export class Procedure {
 }
 
 export class Patient {
-  Id: string = ""
-  Type: string = ""
-  Name: string = ""
-  Owner: string = ""
+  Id: string = "";
+  Type: string = "";
+  Name: string = "";
+  Owner: string = "";
+  OwnerPhone: string = "";
   Procedures: string[] = [];
   Gender: "male" | "female" | "unknown" = "unknown";
   BirthDate: Date = new Date();
-  IdNumber: string = "0";
+  IdNumber: string = "";
   LastModified: Date = new Date();
 }
 
@@ -55,6 +56,7 @@ export class PatientsService {
       Type: "Куче",
       Name: "Buddy",
       Owner: "John Doe",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2018-01-15"),
@@ -67,6 +69,7 @@ export class PatientsService {
       Type: "Котка",
       Name: "Whiskers",
       Owner: "Jane Smith",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2019-05-20"),
@@ -79,6 +82,7 @@ export class PatientsService {
       Type: "Прица",
       Name: "Tweety",
       Owner: "Alice Johnson",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "unknown",
       BirthDate: new Date("2020-07-30"),
@@ -91,6 +95,7 @@ export class PatientsService {
       Type: "Заек",
       Name: "Thumper",
       Owner: "Bob Brown",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
@@ -103,6 +108,7 @@ export class PatientsService {
       Type: "Куче",
       Name: "Max",
       Owner: "Charlie Davis",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2017-03-10"),
@@ -115,6 +121,7 @@ export class PatientsService {
       Type: "Куче",
       Name: "Бъди",
       Owner: "Иван Иванов",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2018-01-15"),
@@ -127,6 +134,7 @@ export class PatientsService {
       Type: "Котка",
       Name: "Мърка",
       Owner: "Мария Петрова",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2019-05-20"),
@@ -138,6 +146,7 @@ export class PatientsService {
       Type: "Прица",
       Name: "Чурулик",
       Owner: "Александър Георгиев",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "unknown",
       BirthDate: new Date("2020-07-30"),
@@ -150,6 +159,7 @@ export class PatientsService {
       Type: "Rabbit",
       Name: "Тупър",
       Owner: "Борислав Димитров",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
@@ -162,6 +172,7 @@ export class PatientsService {
       Type: "Куче",
       Name: "Макс",
       Owner: "Георги Василев",
+      OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2017-03-10"),

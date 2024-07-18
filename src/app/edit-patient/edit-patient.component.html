@@ -1,6 +1,7 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Edit Patient</ion-title>
+    <ion-title *ngIf="!newMode">Редактирай Пациент</ion-title>
+    <ion-title *ngIf="newMode">Нов Пациент</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cancel()">Cancel</ion-button>
     </ion-buttons>
@@ -9,18 +10,34 @@
 <ion-content>
   <ion-list>
     <ion-item>
-      <ion-label position="stacked">Name</ion-label>
-      <ion-input [(ngModel)]="patient.Name"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="stacked">Owner</ion-label>
-      <ion-input [(ngModel)]="patient.Owner"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="stacked">Type</ion-label>
+      <ion-label position="stacked">Тип</ion-label>
       <ion-select [(ngModel)]="patient.Type">
         <ion-select-option *ngFor="let type of types" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Име</ion-label>
+      <ion-input [(ngModel)]="patient.Name" placeholder="Витку"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Пол</ion-label>
+      <ion-select [(ngModel)]="patient.Gender">
+        <ion-select-option value="unknown">Неопределен</ion-select-option>
+        <ion-select-option value="male">Момче</ion-select-option>
+        <ion-select-option value="female">Момиче</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Име на собственик</ion-label>
+      <ion-input [(ngModel)]="patient.Owner" placeholder="Пешо"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Телефон на собственик</ion-label>
+      <ion-input [(ngModel)]="patient.OwnerPhone" placeholder="0812345679"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Чип</ion-label>
+      <ion-input [(ngModel)]="patient.IdNumber" placeholder="12395834234"></ion-input>
     </ion-item>
   </ion-list>
   <ion-button expand="full" (click)="save()">Save</ion-button>

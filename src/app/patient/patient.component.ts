@@ -6,11 +6,12 @@ import { IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip } from '@fortawesome/free-solid-svg-icons';
+import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone } from '@fortawesome/free-solid-svg-icons';
 
 import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, calendar, heartHalf } from 'ionicons/icons';
 import { addIcons } from "ionicons";
 import { Location } from '@angular/common';
+import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-patient',
@@ -27,6 +28,9 @@ export class PatientComponent implements OnInit, OnDestroy {
   calendar = faCalendarDays;
   gender = faMarsAndVenus;
   microchip = faMicrochip;
+  mars = faMars;
+  venus = faVenus;
+  phone = faPhone;
 
 
   patient: Patient | undefined = undefined;
@@ -96,4 +100,26 @@ export class PatientComponent implements OnInit, OnDestroy {
       this.isViewProcedure = false;
     }
   }
+
+  formatBirthDate(data: Date): string {
+    return formatDate(data, "dd.MM.yyyy", "en-US");
+  }
+
+
+  getAge(): string {
+    let now = new Date()
+    let years = now.getFullYear() - this.patient!.BirthDate.getFullYear();
+    let months = now.getMonth() - this.patient!.BirthDate.getMonth();
+
+    // Adjust if the month difference is negative
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    let result = years + "г. ";
+    if(months > 0) {
+      result += months + "м."
+    }
+    return result; 
+  };
 }

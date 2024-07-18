@@ -4,7 +4,7 @@ import * as uuid from 'uuid';
 
 export class Procedure {
   Id: string = "";
-  Type: 'Examination' | 'Surgery' | 'Vaccine' | 'Castration' | 'Blood Test' = "Examination";
+  Type: string = "";
   Date: Date = new Date();
   Details: String = "";
 }
@@ -15,6 +15,10 @@ export class Patient {
   Name: string = ""
   Owner: string = ""
   Procedures: string[] = [];
+  Gender: "male" | "female" | "unknown" = "unknown";
+  BirthDate: Date = new Date();
+  IdNumber: string = "0";
+  LastModified: Date = new Date();
 }
 
 @Injectable({
@@ -23,56 +27,148 @@ export class Patient {
 export class PatientsService {
   private patients = new Map<string, Patient>()
   private procedures = new Map<string, Procedure>()
-  private types: String[] = ["Dog", "Cat", "Bird", "Rabbit"];
+  private types: String[] = ["Куче", "Котка", "Прица", "Rabbit"];
 
   private generateMockData() {
     this.procedures.set("0510ee92-b30e-4bff-a6d9-6af70b0e6acc", {
       Id: "0510ee92-b30e-4bff-a6d9-6af70b0e6acc",
-      Type: 'Examination',
+      Type: 'Преглед',
       Date: new Date('2023-01-15'),
       Details: 'Routine check-up. All vitals are normal.'
     });
     this.procedures.set("b7306c26-8b48-4a8b-83c9-a2425c117364", {
       Id: "b7306c26-8b48-4a8b-83c9-a2425c117364",
-      Type: 'Vaccine',
+      Type: 'Ваксина',
       Date: new Date('2023-02-20'),
       Details: 'Administered rabies vaccine.'
     });
     this.procedures.set("661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1", {
       Id: "661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1",
-      Type: 'Blood Test',
+      Type: 'Кръвно изледване',
       Date: new Date('2023-03-10'),
       Details: 'Blood test for heartworm. Results are negative.'
     });
 
     let procedures = Array.from(this.procedures.keys());
-
-    this.patients.set('1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p', { Id: '1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p', Type: "Cat", Name: "Luna", Owner: "Karen", Procedures: procedures });
-    this.patients.set('2b3c4d5e-6f7g8h-9i0j1k-2l3m4n5o6p7q', { Id: '2b3c4d5e-6f7g8h-9i0j1k-2l3m4n5o6p7q', Type: "Bird", Name: "Sky", Owner: "Leo", Procedures: procedures });
-    this.patients.set('3c4d5e6f-7g8h9i-0j1k2l-3m4n5o6p7q8r', { Id: '3c4d5e6f-7g8h9i-0j1k2l-3m4n5o6p7q8r', Type: "Dog", Name: "Bella", Owner: "Mia", Procedures: procedures });
-    this.patients.set('4d5e6f7g-8h9i0j-1k2l3m-4n5o6p7q8r9s', { Id: '4d5e6f7g-8h9i0j-1k2l3m-4n5o6p7q8r9s', Type: "Cat", Name: "Oliver", Owner: "Nina", Procedures: procedures });
-    this.patients.set('5e6f7g8h-9i0j1k-2l3m4n-5o6p7q8r9s0t', { Id: '5e6f7g8h-9i0j1k-2l3m4n-5o6p7q8r9s0t', Type: "Bird", Name: "Kiwi", Owner: "Oscar", Procedures: procedures });
-    this.patients.set('6f7g8h9i-0j1k2l-3m4n5o-6p7q8r9s0t1u', { Id: '6f7g8h9i-0j1k2l-3m4n5o-6p7q8r9s0t1u', Type: "Dog", Name: "Daisy", Owner: "Paul", Procedures: procedures });
-    this.patients.set('7g8h9i0j-1k2l3m-4n5o6p-7q8r9s0t1u2v', { Id: '7g8h9i0j-1k2l3m-4n5o6p-7q8r9s0t1u2v', Type: "Cat", Name: "Chloe", Owner: "Quinn", Procedures: procedures });
-    this.patients.set('8h9i0j1k-2l3m4n-5o6p7q-8r9s0t1u2v3w', { Id: '8h9i0j1k-2l3m4n-5o6p7q-8r9s0t1u2v3w', Type: "Rabbit", Name: "Coco", Owner: "Rose", Procedures: procedures });
-    this.patients.set('9i0j1k2l-3m4n5o-6p7q8r-9s0t1u2v3w4x', { Id: '9i0j1k2l-3m4n5o-6p7q8r-9s0t1u2v3w4x', Type: "Dog", Name: "Molly", Owner: "Steve", Procedures: procedures });
-    this.patients.set('0j1k2l3m-4n5o6p-7q8r9s-0t1u2v3w4x5y', { Id: '0j1k2l3m-4n5o6p-7q8r9s-0t1u2v3w4x5y', Type: "Cat", Name: "Tiger", Owner: "Tina", Procedures: procedures });
-    this.patients.set('1k2l3m4n-5o6p7q-8r9s0t-1u2v3w4x5y6z', { Id: '1k2l3m4n-5o6p7q-8r9s0t-1u2v3w4x5y6z', Type: "Bird", Name: "Sunny", Owner: "Uma", Procedures: procedures });
-    this.patients.set('2l3m4n5o-6p7q8r-9s0t1u-2v3w4x5y6z7a', { Id: '2l3m4n5o-6p7q8r-9s0t1u-2v3w4x5y6z7a', Type: "Dog", Name: "Bailey", Owner: "Vince", Procedures: procedures });
-    this.patients.set('3m4n5o6p-7q8r9s-0t1u2v-3w4x5y6z7a8b', { Id: '3m4n5o6p-7q8r9s-0t1u2v-3w4x5y6z7a8b', Type: "Cat", Name: "Loki", Owner: "Wendy", Procedures: procedures });
-    this.patients.set('4n5o6p7q-8r9s0t-1u2v3w-4x5y6z7a8b9c', { Id: '4n5o6p7q-8r9s0t-1u2v3w-4x5y6z7a8b9c', Type: "Rabbit", Name: "Snowball", Owner: "Xander", Procedures: procedures });
-    this.patients.set('5o6p7q8r-9s0t1u-2v3w4x-5y6z7a8b9c0d', { Id: '5o6p7q8r-9s0t1u-2v3w4x-5y6z7a8b9c0d', Type: "Dog", Name: "Lucy", Owner: "Yara", Procedures: procedures });
-    this.patients.set('6p7q8r9s-0t1u2v-3w4x5y-6z7a8b9c0d1e', { Id: '6p7q8r9s-0t1u2v-3w4x5y-6z7a8b9c0d1e', Type: "Cat", Name: "Nala", Owner: "Zane", Procedures: procedures });
-    this.patients.set('7q8r9s0t-1u2v3w-4x5y6z-7a8b9c0d1e2f', { Id: '7q8r9s0t-1u2v3w-4x5y6z-7a8b9c0d1e2f', Type: "Bird", Name: "Peach", Owner: "Amy", Procedures: procedures });
-    this.patients.set('8r9s0t1u-2v3w4x-5y6z7a-8b9c0d1e2f3g', { Id: '8r9s0t1u-2v3w4x-5y6z7a-8b9c0d1e2f3g', Type: "Dog", Name: "Cooper", Owner: "Ben", Procedures: procedures });
-    this.patients.set('9s0t1u2v-3w4x5y-6z7a8b-9c0d1e2f3g4h', { Id: '9s0t1u2v-3w4x5y-6z7a8b-9c0d1e2f3g4h', Type: "Cat", Name: "Leo", Owner: "Cathy", Procedures: procedures });
-    this.patients.set('0t1u2v3w-4x5y6z-7a8b9c-0d1e2f3g4h5i', { Id: '0t1u2v3w-4x5y6z-7a8b9c-0d1e2f3g4h5i', Type: "Rabbit", Name: "Fluffy", Owner: "Dan", Procedures: procedures });
-    this.patients.set('1u2v3w4x-5y6z7a-8b9c0d-1e2f3g4h5i6j', { Id: '1u2v3w4x-5y6z7a-8b9c0d-1e2f3g4h5i6j', Type: "Dog", Name: "Toby", Owner: "Ella", Procedures: procedures });
-    this.patients.set('2v3w4x5y-6z7a8b-9c0d1e-2f3g4h5i6j7k', { Id: '2v3w4x5y-6z7a8b-9c0d1e-2f3g4h5i6j7k', Type: "Cat", Name: "Milo", Owner: "Fred", Procedures: procedures });
-    this.patients.set('3w4x5y6z-7a8b9c-0d1e2f-3g4h5i6j7k8l', { Id: '3w4x5y6z-7a8b9c-0d1e2f-3g4h5i6j7k8l', Type: "Bird", Name: "Blue", Owner: "Gina", Procedures: procedures });
-    this.patients.set('4x5y6z7a-8b9c0d-1e2f3g-4h5i6j7k8l9m', { Id: '4x5y6z7a-8b9c0d-1e2f3g-4h5i6j7k8l9m', Type: "Dog", Name: "Jack", Owner: "Holly", Procedures: procedures });
-    this.patients.set('5y6z7a8b-9c0d1e-2f3g4h-5i6j7k8l9m0n', { Id: '5y6z7a8b-9c0d1e-2f3g4h-5i6j7k8l9m0n', Type: "Cat", Name: "Oscar", Owner: "Ian", Procedures: procedures });
-    this.patients.set('6z7a8b9c-0d1e2f-3g4h5i-6j7k8l9m0n1o', { Id: '6z7a8b9c-0d1e2f-3g4h5i-6j7k8l9m0n1o', Type: "Rabbit", Name: "Patches", Owner: "Jill", Procedures: procedures });
+    let patient: Patient = {
+      Id: "1",
+      Type: "Куче",
+      Name: "Buddy",
+      Owner: "John Doe",
+      Procedures: procedures,
+      Gender: "male",
+      BirthDate: new Date("2018-01-15"),
+      IdNumber: "482736194",
+      LastModified: new Date("2023-01-01"),
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "2",
+      Type: "Котка",
+      Name: "Whiskers",
+      Owner: "Jane Smith",
+      Procedures: procedures,
+      Gender: "female",
+      BirthDate: new Date("2019-05-20"),
+      IdNumber: "193847562",
+      LastModified: new Date("2023-02-15")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "3",
+      Type: "Прица",
+      Name: "Tweety",
+      Owner: "Alice Johnson",
+      Procedures: procedures,
+      Gender: "unknown",
+      BirthDate: new Date("2020-07-30"),
+      IdNumber: "758392014",
+      LastModified: new Date("2023-03-10")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "4",
+      Type: "Заек",
+      Name: "Thumper",
+      Owner: "Bob Brown",
+      Procedures: procedures,
+      Gender: "female",
+      BirthDate: new Date("2021-11-05"),
+      IdNumber: "620485731",
+      LastModified: new Date("2023-04-20")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "5",
+      Type: "Куче",
+      Name: "Max",
+      Owner: "Charlie Davis",
+      Procedures: procedures,
+      Gender: "male",
+      BirthDate: new Date("2017-03-10"),
+      IdNumber: "374829105",
+      LastModified: new Date("2023-05-25")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "6",
+      Type: "Куче",
+      Name: "Бъди",
+      Owner: "Иван Иванов",
+      Procedures: procedures,
+      Gender: "male",
+      BirthDate: new Date("2018-01-15"),
+      IdNumber: "918273645",
+      LastModified: new Date("2023-01-01")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "7",
+      Type: "Котка",
+      Name: "Мърка",
+      Owner: "Мария Петрова",
+      Procedures: procedures,
+      Gender: "female",
+      BirthDate: new Date("2019-05-20"),
+      IdNumber: "506172839",
+      LastModified: new Date("2023-02-15")
+    };
+    patient = {
+      Id: "8",
+      Type: "Прица",
+      Name: "Чурулик",
+      Owner: "Александър Георгиев",
+      Procedures: procedures,
+      Gender: "unknown",
+      BirthDate: new Date("2020-07-30"),
+      IdNumber: "284756193",
+      LastModified: new Date("2023-03-10")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "9",
+      Type: "Rabbit",
+      Name: "Тупър",
+      Owner: "Борислав Димитров",
+      Procedures: procedures,
+      Gender: "female",
+      BirthDate: new Date("2021-11-05"),
+      IdNumber: "739182645",
+      LastModified: new Date("2023-04-20")
+    };
+    this.patients.set(patient.Id, patient);
+    patient = {
+      Id: "10",
+      Type: "Куче",
+      Name: "Макс",
+      Owner: "Георги Василев",
+      Procedures: procedures,
+      Gender: "male",
+      BirthDate: new Date("2017-03-10"),
+      IdNumber: "561093827",
+      LastModified: new Date("2023-05-25")
+    };
+    this.patients.set(patient.Id, patient);
   }
   constructor() {
     this.generateMockData();

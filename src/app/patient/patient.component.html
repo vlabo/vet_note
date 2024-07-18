@@ -6,19 +6,20 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ patient.Name }}</ion-title>
+      <ion-title>{{ patient.Name }} - {{ patient.Type }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-grid>
     <ion-row>
       <ion-col>
-          <ion-label>{{ patient.Type}}</ion-label>
+          <fa-icon [icon]="user" class="ion-margin-end"></fa-icon>
+          <ion-label>{{ patient.Owner }}</ion-label>
       </ion-col>
 
       <ion-col>
           <fa-icon [icon]="cake" class="ion-margin-end"></fa-icon>
-          <ion-label>3.9.2023</ion-label>
+          <ion-label>{{ formatBirthDate(patient.BirthDate) }}</ion-label>
       </ion-col>
       <ion-col size="2">
           <ion-button fill="clear" (click)="openEdit()">
@@ -28,23 +29,27 @@
     </ion-row>
     <ion-row>
       <ion-col>
-          <fa-icon [icon]="user" class="ion-margin-end"></fa-icon>
-          <ion-label>{{ patient.Owner }}</ion-label>
+          <fa-icon [icon]="phone" class="ion-margin-end"></fa-icon>
+          <ion-label>087483472</ion-label>
       </ion-col>
       <ion-col>
           <fa-icon [icon]="calendar" class="ion-margin-end"></fa-icon>
-          <ion-label>2г.</ion-label>
+          <ion-label>{{ getAge() }}</ion-label>
       </ion-col>
       <ion-col size="2"></ion-col>
     </ion-row>
     <ion-row>
       <ion-col>
-          <fa-icon [icon]="gender" class="ion-margin-end"></fa-icon>
-          <ion-label>Неопределен</ion-label>
+          <fa-icon *ngIf="patient.Gender == 'unknown'" [icon]="gender" class="ion-margin-end"></fa-icon>
+          <ion-label *ngIf="patient.Gender == 'unknown'">Неопределен</ion-label>
+          <fa-icon *ngIf="patient.Gender == 'male'" [icon]="mars" class="ion-margin-end"></fa-icon>
+          <ion-label *ngIf="patient.Gender == 'male'">Момче</ion-label>
+          <fa-icon *ngIf="patient.Gender == 'female'" [icon]="venus" class="ion-margin-end"></fa-icon>
+          <ion-label *ngIf="patient.Gender == 'female'">Момиче</ion-label>
       </ion-col>
       <ion-col>
           <fa-icon [icon]="microchip" class="ion-margin-end"></fa-icon>
-          <ion-label>18381828312</ion-label>
+          <ion-label>{{patient.IdNumber}}</ion-label>
       </ion-col>
       <ion-col size="2"></ion-col>
     </ion-row>
@@ -54,10 +59,10 @@
   </ion-item>
   <ion-item>
     <ion-title>Исторя</ion-title>
-    <ion-button (click)="createProcedure()">
-      <ion-icon slot="start" name="add"></ion-icon>
-      Нов Запис
-    </ion-button>
+    <!-- <ion-button (click)="createProcedure()"> -->
+      <!-- <ion-icon slot="start" name="add"></ion-icon> -->
+      <!-- Нов Запис -->
+    <!-- </ion-button> -->
   </ion-item>
 
   <ion-list>

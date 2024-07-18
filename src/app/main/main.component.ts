@@ -6,16 +6,23 @@ import { addIcons } from "ionicons";
 import { Patient, PatientsService } from '../patients.service';
 import { Router } from '@angular/router';
 import Fuse, { FuseResult } from 'fuse.js';
+import { faMicrochip, faUser, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-main',
   templateUrl: './main.component.html',
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [IonicModule, CommonModule, FontAwesomeModule],
   styleUrls: ['./main.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class MainComponent implements OnInit {
+  // Icons
+  microchip = faMicrochip;
+  user = faUser;
+  minus = faMinus;
+
   patients: Patient[] = [];
 
   filteredPatients: Patient[] = [];
@@ -24,10 +31,7 @@ export class MainComponent implements OnInit {
   searchResult: FuseResult<Patient>[] | undefined;
 
   constructor(private router: Router, private patientsService: PatientsService, private renderer: Renderer2) {
-    this.fuse = new Fuse(this.patients, {
-      keys: ['Name', 'Owner'],
-      includeMatches: true,
-    });
+    this.fuse = new Fuse(this.patients, {});
   }
 
   ngOnInit() {
@@ -35,7 +39,7 @@ export class MainComponent implements OnInit {
     this.patients = this.patientsService.getPatients()
     this.filteredPatients = this.patients;
     this.fuse = new Fuse(this.patients, {
-      keys: ['Name', 'Owner', 'Type'],
+      keys: ['Name', 'Owner', 'IdNumber'],
       includeMatches: true,
     });
   }
@@ -45,7 +49,6 @@ export class MainComponent implements OnInit {
   }
 
   newPatient(): void {
-    
     this.router.navigate(['/patient/new']);
   }
 
@@ -61,8 +64,9 @@ export class MainComponent implements OnInit {
     }
   }
 
-  highlight(p: Patient, key: string): string {
-      let highlightedText: string = p[key as keyof Patient] as string;
+  highlight(p: Patient, key: string, includeEmpty: boolean = true): string {
+    let highlightedText: string = p[key as keyof Patient] as string;
+    var hasMatch = false;
     if (this.searchResult) {
       this.searchResult.forEach(m => {
         if (m.item !== p) {
@@ -72,6 +76,7 @@ export class MainComponent implements OnInit {
           if (match.key !== key) {
             return;
           }
+          hasMatch = true;
 
           var indices = match.indices.slice().reverse();
           indices.forEach(([start, end]) => {
@@ -79,6 +84,9 @@ export class MainComponent implements OnInit {
           });
         });
       });
+    }
+    if(!hasMatch && !includeEmpty) {
+      return "";
     }
     return highlightedText;
   }

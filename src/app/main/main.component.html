@@ -5,16 +5,25 @@
       <ion-icon name="add" (click)="newPatient()"></ion-icon>
     </ion-fab-button>
   </ion-fab>
-  <ion-list>
-    <ion-list-header>
-      <ion-label>Име</ion-label>
-      <ion-label>Собственик</ion-label>
-      <ion-label>Тип</ion-label>
-    </ion-list-header>
-    <ion-item *ngFor="let p of filteredPatients" button (click)="goToPatient(p.Id)">
-      <ion-label [innerHTML]="highlight(p, 'Name')"></ion-label>
-      <ion-label [innerHTML]="highlight(p, 'Owner')"></ion-label>
-      <ion-label [innerHTML]="highlight(p, 'Type')"></ion-label>
-    </ion-item>
-  </ion-list>
+  <ion-grid>
+    <ion-row *ngFor="let p of filteredPatients" button (click)="goToPatient(p.Id)" class="patient-row">
+      <ion-col size="1">
+        <ion-label>{{ p.Type }}</ion-label>
+      </ion-col>
+      <ion-col>
+        <fa-icon [icon]="minus" class="ion-margin-end"></fa-icon>
+        <ion-label [innerHTML]="highlight(p, 'Name')"></ion-label>
+      </ion-col>
+      <ion-col>
+        <fa-icon [icon]="user" class="ion-margin-end"></fa-icon>
+        <ion-label [innerHTML]="highlight(p, 'Owner')"></ion-label>
+      </ion-col>
+      <ion-col>
+        <ng-container *ngFor="let content of [highlight(p, 'IdNumber', false)]">
+          <fa-icon *ngIf="content !== ''" [icon]="microchip" class="ion-margin-end"></fa-icon>
+          <ion-label *ngIf="content !== ''" [innerHTML]="content"></ion-label>
+        </ng-container>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>

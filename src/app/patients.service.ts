@@ -99,7 +99,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
-      IdNumber: "620485731",
+      IdNumber: "100237000236519",
       LastModified: new Date("2023-04-20")
     };
     this.patients.set(patient.Id, patient);
@@ -112,7 +112,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2017-03-10"),
-      IdNumber: "374829105",
+      IdNumber: "100237000236511",
       LastModified: new Date("2023-05-25")
     };
     this.patients.set(patient.Id, patient);
@@ -125,7 +125,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2018-01-15"),
-      IdNumber: "918273645",
+      IdNumber: "100237000236514",
       LastModified: new Date("2023-01-01")
     };
     this.patients.set(patient.Id, patient);
@@ -138,7 +138,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2019-05-20"),
-      IdNumber: "506172839",
+      IdNumber: "100237000236513",
       LastModified: new Date("2023-02-15")
     };
     patient = {
@@ -150,7 +150,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "unknown",
       BirthDate: new Date("2020-07-30"),
-      IdNumber: "284756193",
+      IdNumber: "100237000236512",
       LastModified: new Date("2023-03-10")
     };
     this.patients.set(patient.Id, patient);
@@ -163,7 +163,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
-      IdNumber: "739182645",
+      IdNumber: "100237000236517",
       LastModified: new Date("2023-04-20")
     };
     this.patients.set(patient.Id, patient);
@@ -176,7 +176,7 @@ export class PatientsService {
       Procedures: procedures,
       Gender: "male",
       BirthDate: new Date("2017-03-10"),
-      IdNumber: "561093827",
+      IdNumber: "100237000236513",
       LastModified: new Date("2023-05-25")
     };
     this.patients.set(patient.Id, patient);

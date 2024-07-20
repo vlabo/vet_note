@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Renderer2, ViewEncapsulation } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { AfterViewInit, Component, OnInit, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { IonSearchbar, IonicModule } from '@ionic/angular';
 import { add } from 'ionicons/icons';
 import { addIcons } from "ionicons";
 import { Patient, PatientsService } from '../patients.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import Fuse, { FuseResult } from 'fuse.js';
 import { faMicrochip, faUser, faMinus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,11 +17,13 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
   styleUrls: ['./main.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class MainComponent implements OnInit {
+export class MainComponent implements OnInit, AfterViewInit {
   // Icons
   microchip = faMicrochip;
   user = faUser;
   minus = faMinus;
+
+  @ViewChild('searchbar', { static: false }) searchbar!: IonSearchbar;
 
   patients: Patient[] = [];
 
@@ -30,7 +32,7 @@ export class MainComponent implements OnInit {
 
   searchResult: FuseResult<Patient>[] | undefined;
 
-  constructor(private router: Router, private patientsService: PatientsService, private renderer: Renderer2) {
+  constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService) {
     this.fuse = new Fuse(this.patients, {});
   }
 
@@ -42,6 +44,18 @@ export class MainComponent implements OnInit {
       keys: ['Name', 'Owner', 'IdNumber'],
       includeMatches: true,
     });
+
+    var searchQuery = this.route.snapshot.queryParamMap.get('query');
+    if (searchQuery) {
+      this.filterList(searchQuery);
+    }
+  }
+
+  ngAfterViewInit(): void {
+    var searchQuery = this.route.snapshot.queryParamMap.get('query');
+    if (this.searchbar) {
+      this.searchbar.value = searchQuery;
+    }
   }
 
   goToPatient(patientId: string): void {
@@ -55,13 +69,19 @@ export class MainComponent implements OnInit {
   onSearch(event: any): void {
     const query = event.target.value;
     if (!query) {
+      this.router.navigate([], {  relativeTo: this.route, replaceUrl: true });
       this.filteredPatients = this.patients;
       this.searchResult = [];
     } else {
-      const result = this.fuse.search(query);
-      this.searchResult = result;
-      this.filteredPatients = result.map(res => res.item);
+      this.filterList(query)
     }
+  }
+
+  filterList(query: string): void {
+    this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true});
+    const result = this.fuse.search(query);
+    this.searchResult = result;
+    this.filteredPatients = result.map(res => res.item);
   }
 
   highlight(p: Patient, key: string, includeEmpty: boolean = true): string {
@@ -85,7 +105,7 @@ export class MainComponent implements OnInit {
         });
       });
     }
-    if(!hasMatch && !includeEmpty) {
+    if (!hasMatch && !includeEmpty) {
       return "";
     }
     return highlightedText;

@@ -1,5 +1,5 @@
 <ion-content>
-  <ion-searchbar name="search" (ionInput)="onSearch($event)"></ion-searchbar>
+  <ion-searchbar #searchbar name="search" (ionInput)="onSearch($event)"></ion-searchbar>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end">
     <ion-fab-button>
       <ion-icon name="add" (click)="newPatient()"></ion-icon>

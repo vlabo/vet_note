@@ -6,7 +6,7 @@ import { IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone, faWeightHanging, faCheck, faX} from '@fortawesome/free-solid-svg-icons';
 
 import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, calendar, heartHalf } from 'ionicons/icons';
 import { addIcons } from "ionicons";
@@ -31,7 +31,9 @@ export class PatientComponent implements OnInit, OnDestroy {
   mars = faMars;
   venus = faVenus;
   phone = faPhone;
-
+  weight = faWeightHanging;
+  check = faCheck;
+  xIcon = faX;
 
   patient: Patient | undefined = undefined;
   procedures: Procedure[] = [];
@@ -117,9 +119,9 @@ export class PatientComponent implements OnInit, OnDestroy {
       months += 12;
     }
     let result = years + "г. ";
-    if(months > 0) {
+    if (months > 0) {
       result += months + "м."
     }
-    return result; 
+    return result;
   };
 }

@@ -19,6 +19,8 @@ export class Patient {
   Gender: "male" | "female" | "unknown" = "unknown";
   BirthDate: Date = new Date();
   IdNumber: string = "";
+  Weight: number = 0;
+  Castrated: boolean = false;
   LastModified: Date = new Date();
 }
 
@@ -62,6 +64,8 @@ export class PatientsService {
       BirthDate: new Date("2018-01-15"),
       IdNumber: "482736194",
       LastModified: new Date("2023-01-01"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -74,7 +78,9 @@ export class PatientsService {
       Gender: "female",
       BirthDate: new Date("2019-05-20"),
       IdNumber: "193847562",
-      LastModified: new Date("2023-02-15")
+      LastModified: new Date("2023-02-15"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -87,7 +93,9 @@ export class PatientsService {
       Gender: "unknown",
       BirthDate: new Date("2020-07-30"),
       IdNumber: "758392014",
-      LastModified: new Date("2023-03-10")
+      LastModified: new Date("2023-03-10"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -100,7 +108,9 @@ export class PatientsService {
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
       IdNumber: "100237000236519",
-      LastModified: new Date("2023-04-20")
+      LastModified: new Date("2023-04-20"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -113,7 +123,9 @@ export class PatientsService {
       Gender: "male",
       BirthDate: new Date("2017-03-10"),
       IdNumber: "100237000236511",
-      LastModified: new Date("2023-05-25")
+      LastModified: new Date("2023-05-25"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -126,7 +138,9 @@ export class PatientsService {
       Gender: "male",
       BirthDate: new Date("2018-01-15"),
       IdNumber: "100237000236514",
-      LastModified: new Date("2023-01-01")
+      LastModified: new Date("2023-01-01"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -139,7 +153,9 @@ export class PatientsService {
       Gender: "female",
       BirthDate: new Date("2019-05-20"),
       IdNumber: "100237000236513",
-      LastModified: new Date("2023-02-15")
+      LastModified: new Date("2023-02-15"),
+      Weight: 13,
+      Castrated: false,
     };
     patient = {
       Id: "8",
@@ -151,7 +167,9 @@ export class PatientsService {
       Gender: "unknown",
       BirthDate: new Date("2020-07-30"),
       IdNumber: "100237000236512",
-      LastModified: new Date("2023-03-10")
+      LastModified: new Date("2023-03-10"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -164,7 +182,9 @@ export class PatientsService {
       Gender: "female",
       BirthDate: new Date("2021-11-05"),
       IdNumber: "100237000236517",
-      LastModified: new Date("2023-04-20")
+      LastModified: new Date("2023-04-20"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -177,7 +197,9 @@ export class PatientsService {
       Gender: "male",
       BirthDate: new Date("2017-03-10"),
       IdNumber: "100237000236513",
-      LastModified: new Date("2023-05-25")
+      LastModified: new Date("2023-05-25"),
+      Weight: 13,
+      Castrated: false,
     };
     this.patients.set(patient.Id, patient);
   }

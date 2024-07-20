@@ -30,6 +30,7 @@ export class MainComponent implements OnInit, AfterViewInit {
   filteredPatients: Patient[] = [];
   fuse: Fuse<Patient>;
 
+  searchQuery: string | null = "";
   searchResult: FuseResult<Patient>[] | undefined;
 
   constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService) {
@@ -45,16 +46,15 @@ export class MainComponent implements OnInit, AfterViewInit {
       includeMatches: true,
     });
 
-    var searchQuery = this.route.snapshot.queryParamMap.get('query');
-    if (searchQuery) {
-      this.filterList(searchQuery);
+    this.searchQuery = this.route.snapshot.queryParamMap.get('query');
+    if (this.searchQuery) {
+      this.filterList(this.searchQuery);
     }
   }
 
   ngAfterViewInit(): void {
-    var searchQuery = this.route.snapshot.queryParamMap.get('query');
-    if (this.searchbar) {
-      this.searchbar.value = searchQuery;
+    if (this.searchbar && this.searchQuery) {
+      this.searchbar.value = this.searchQuery;
     }
   }
 
@@ -68,6 +68,7 @@ export class MainComponent implements OnInit, AfterViewInit {
 
   onSearch(event: any): void {
     const query = event.target.value;
+    this.searchQuery = query;
     if (!query) {
       this.router.navigate([], {  relativeTo: this.route, replaceUrl: true });
       this.filteredPatients = this.patients;

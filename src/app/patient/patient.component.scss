@@ -16,4 +16,15 @@ ion-grid {
   --ion-grid-column-padding-xl: 25px;
 }
 
-ion-col {}
+ion-col {
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* justify-content: center; */
+  /* Center content vertically */
+}
+
+.note-text {
+  padding: 10px;
+  border-bottom: 2px solid var(--ion-color-light-tint);
+  background-color: var(--ion-item-background);
+}

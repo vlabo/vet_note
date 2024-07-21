@@ -5,7 +5,7 @@ import * as uuid from 'uuid';
 export class Procedure {
   Id: string = "";
   Type: string = "";
-  Date: Date = new Date();
+  Date: string = "";
   Details: String = "";
 }
 
@@ -15,9 +15,9 @@ export class Patient {
   Name: string = "";
   Owner: string = "";
   OwnerPhone: string = "";
-  Procedures: string[] = [];
+  Procedures: Procedure[] = [];
   Gender: "male" | "female" | "unknown" = "unknown";
-  BirthDate: Date = new Date();
+  BirthDate: string = "";
   IdNumber: string = "";
   Weight: number = 0;
   Castrated: boolean = false;
@@ -36,23 +36,23 @@ export class PatientsService {
     this.procedures.set("0510ee92-b30e-4bff-a6d9-6af70b0e6acc", {
       Id: "0510ee92-b30e-4bff-a6d9-6af70b0e6acc",
       Type: 'Преглед',
-      Date: new Date('2023-01-15'),
+      Date: '2023-01-15',
       Details: 'Routine check-up. All vitals are normal.'
     });
     this.procedures.set("b7306c26-8b48-4a8b-83c9-a2425c117364", {
       Id: "b7306c26-8b48-4a8b-83c9-a2425c117364",
       Type: 'Ваксина',
-      Date: new Date('2023-02-20'),
+      Date: '2023-02-20',
       Details: 'Administered rabies vaccine.'
     });
     this.procedures.set("661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1", {
       Id: "661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1",
       Type: 'Кръвно изледване',
-      Date: new Date('2023-03-10'),
+      Date: '2023-03-10',
       Details: 'Blood test for heartworm. Results are negative.'
     });
 
-    let procedures = Array.from(this.procedures.keys());
+    let procedures = Array.from(this.procedures.values());
     let patient: Patient = {
       Id: "1",
       Type: "Куче",
@@ -61,7 +61,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
-      BirthDate: new Date("2018-01-15"),
+      BirthDate: "2018-01-15",
       IdNumber: "482736194",
       LastModified: new Date("2023-01-01"),
       Weight: 13,
@@ -76,7 +76,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
-      BirthDate: new Date("2019-05-20"),
+      BirthDate: "2019-05-20",
       IdNumber: "193847562",
       LastModified: new Date("2023-02-15"),
       Weight: 13,
@@ -91,7 +91,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "unknown",
-      BirthDate: new Date("2020-07-30"),
+      BirthDate: "2020-07-30",
       IdNumber: "758392014",
       LastModified: new Date("2023-03-10"),
       Weight: 13,
@@ -106,7 +106,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
-      BirthDate: new Date("2021-11-05"),
+      BirthDate: "2021-11-05",
       IdNumber: "100237000236519",
       LastModified: new Date("2023-04-20"),
       Weight: 13,
@@ -121,7 +121,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
-      BirthDate: new Date("2017-03-10"),
+      BirthDate: "2017-03-10",
       IdNumber: "100237000236511",
       LastModified: new Date("2023-05-25"),
       Weight: 13,
@@ -136,7 +136,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
-      BirthDate: new Date("2018-01-15"),
+      BirthDate: "2018-01-15",
       IdNumber: "100237000236514",
       LastModified: new Date("2023-01-01"),
       Weight: 13,
@@ -151,7 +151,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
-      BirthDate: new Date("2019-05-20"),
+      BirthDate: "2019-05-20",
       IdNumber: "100237000236513",
       LastModified: new Date("2023-02-15"),
       Weight: 13,
@@ -165,7 +165,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "unknown",
-      BirthDate: new Date("2020-07-30"),
+      BirthDate: "2020-07-30",
       IdNumber: "100237000236512",
       LastModified: new Date("2023-03-10"),
       Weight: 13,
@@ -180,7 +180,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "female",
-      BirthDate: new Date("2021-11-05"),
+      BirthDate: "2021-11-05",
       IdNumber: "100237000236517",
       LastModified: new Date("2023-04-20"),
       Weight: 13,
@@ -195,7 +195,7 @@ export class PatientsService {
       OwnerPhone: "08773423453",
       Procedures: procedures,
       Gender: "male",
-      BirthDate: new Date("2017-03-10"),
+      BirthDate: "2017-03-10",
       IdNumber: "100237000236513",
       LastModified: new Date("2023-05-25"),
       Weight: 13,
@@ -244,13 +244,12 @@ export class PatientsService {
     procedure.Id = uuid.v4();
     this.procedures.set(procedure.Id, procedure);
     let patient = this.patients.get(patientId);
-    patient?.Procedures.unshift(procedure.Id);
+    patient?.Procedures.unshift(procedure);
   }
 
   public updatePatient(patient: Patient) {
     this.patients.set(patient.Id, patient);
   }
-
 
   public updateProcedure(procedure: Procedure) {
     this.procedures.set(procedure.Id, procedure);

@@ -42,7 +42,7 @@ export class MainComponent implements OnInit, AfterViewInit {
     this.patients = this.patientsService.getPatients()
     this.filteredPatients = this.patients;
     this.fuse = new Fuse(this.patients, {
-      keys: ['Name', 'Owner', 'IdNumber'],
+      keys: ['Name', 'Owner.Name', 'IdNumber'],
       includeMatches: true,
     });
 

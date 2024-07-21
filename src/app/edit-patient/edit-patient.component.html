@@ -17,19 +17,30 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Име</ion-label>
-      <ion-input [(ngModel)]="patient.Name" placeholder="Витку"></ion-input>
+      <ion-input [(ngModel)]="patient.Name" placeholder="Име"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Пол</ion-label>
       <ion-select [(ngModel)]="patient.Gender">
         <ion-select-option value="unknown">Неопределен</ion-select-option>
-        <ion-select-option value="male">Момче</ion-select-option>
-        <ion-select-option value="female">Момиче</ion-select-option>
+        <ion-select-option value="male">Мъжки</ion-select-option>
+        <ion-select-option value="female">Женски</ion-select-option>
       </ion-select>
     </ion-item>
     <ion-item>
+      <ion-label position="stacked">Тегло (кг)</ion-label>
+      <ion-input [(ngModel)]="patient.Weight" placeholder="0"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-toggle position="stacked" [(ngModel)]="patient.Castrated">Кастриранo</ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label>Дата на раждане</ion-label>
+      <ion-datetime-button datetime="datetime"></ion-datetime-button>
+    </ion-item>
+    <ion-item>
       <ion-label position="stacked">Име на собственик</ion-label>
-      <ion-input [(ngModel)]="patient.Owner" placeholder="Пешо"></ion-input>
+      <ion-input [(ngModel)]="patient.Owner" placeholder="Име"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Телефон на собственик</ion-label>
@@ -37,8 +48,14 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Чип</ion-label>
-      <ion-input [(ngModel)]="patient.IdNumber" placeholder="12395834234"></ion-input>
+      <ion-input [(ngModel)]="patient.IdNumber" placeholder="100..."></ion-input>
     </ion-item>
   </ion-list>
   <ion-button expand="full" (click)="save()">Save</ion-button>
 </ion-content>
+
+<ion-modal [keepContentsMounted]="true">
+  <ng-template>
+    <ion-datetime id="datetime" presentation="date"></ion-datetime>
+  </ng-template>
+</ion-modal>

@@ -50,7 +50,7 @@ export class ProcedureComponent implements OnInit {
           if (procedure) {
             this.procedure = { ...procedure };
             console.log(this.procedure);
-            this.date = this.procedure.Date.toISOString();
+            this.date = this.procedure.Date;
           }
         }
     });

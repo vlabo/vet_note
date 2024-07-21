@@ -70,7 +70,7 @@ export class PatientComponent implements OnInit, OnDestroy {
         return;
       }
       this.patient = this.patientService.getPatient(id);
-      this.procedures = this.patientService.getProcedures(this.patient!.Procedures);
+      // this.procedures = this.patientService.getProcedures(this.patient!.Procedures);
     });
   }
 
@@ -110,17 +110,18 @@ export class PatientComponent implements OnInit, OnDestroy {
 
   getAge(): string {
     let now = new Date()
-    let years = now.getFullYear() - this.patient!.BirthDate.getFullYear();
-    let months = now.getMonth() - this.patient!.BirthDate.getMonth();
+    let date = new Date(this.patient!.BirthDate)
+    let years = now.getFullYear() - date.getFullYear();
+    let months = now.getMonth() - date.getMonth();
 
     // Adjust if the month difference is negative
     if (months < 0) {
       years--;
       months += 12;
     }
-    let result = years + "г. ";
+    let result = years + "г";
     if (months > 0) {
-      result += months + "м."
+      result += " " + months + "м"
     }
     return result;
   };

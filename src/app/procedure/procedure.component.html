@@ -13,24 +13,17 @@
 <ion-content>
   <form *ngIf="procedure">
     <ion-item>
-      <ion-label position="stacked">Procedure Type</ion-label>
       <ion-label *ngIf="!isEditMode">{{ procedure.Type }}</ion-label>
       <ion-select id="procedureType" [(ngModel)]="procedure.Type" name="type" *ngIf="isEditMode">
         <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
+      <ion-datetime-button datetime="datetime" [disabled]="!isEditMode"></ion-datetime-button>
     </ion-item>
 
-
-    <ion-item>
-      <ion-label position="stacked">Details</ion-label>
-      <ion-textarea [(ngModel)]="procedure.Details" name="details" [disabled]="!isEditMode"></ion-textarea>
-    </ion-item>
-
-    <ion-item>
-      <ion-datetime displayFormat="MMM DD, YYYY" [(ngModel)]="procedure.Date" name="date"
-        [disabled]="!isEditMode"></ion-datetime>
-    </ion-item>
-
+    <ion-textarea [(ngModel)]="procedure.Details" name="details" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
+    <ion-label *ngIf="!isEditMode">
+      <pre>{{ procedure.Details }}</pre>
+    </ion-label>
     <ion-row *ngIf="isEditMode">
       <ion-col>
         <ion-button expand="block" (click)="saveProcedure()">Save</ion-button>
@@ -39,3 +32,9 @@
 
   </form>
 </ion-content>
+
+<ion-modal [keepContentsMounted]="true">
+  <ng-template>
+    <ion-datetime id="datetime" presentation="date"></ion-datetime>
+  </ng-template>
+</ion-modal>

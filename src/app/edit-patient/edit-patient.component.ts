@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { Patient, PatientsService } from '../patients.service';
+import { ViewPatient, PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -15,7 +15,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   imports: [CommonModule, FormsModule, IonicModule]
 })
 export class EditPatientComponent implements OnInit {
-  patient: Patient = new Patient();
+  patient: ViewPatient = new ViewPatient();
   types: String[] = [];
   newMode = false;
 

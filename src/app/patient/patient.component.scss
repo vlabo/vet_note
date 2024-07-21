@@ -1,26 +1,36 @@
 ion-grid {
-  /* --ion-grid-padding: 20px; */
+  /* --ion-grid-column-padding: 15px; */
 
-  /* --ion-grid-padding-xs: 20px; */
-  /* --ion-grid-padding-sm: 20px; */
-  /* --ion-grid-padding-md: 20px; */
-  /* --ion-grid-padding-lg: 20px; */
-  /* --ion-grid-padding-xl: 20px; */
-
-  --ion-grid-column-padding: 25px;
-
-  --ion-grid-column-padding-xs: 25px;
-  --ion-grid-column-padding-sm: 25px;
-  --ion-grid-column-padding-md: 25px;
-  --ion-grid-column-padding-lg: 25px;
-  --ion-grid-column-padding-xl: 25px;
+  /* --ion-grid-column-padding-xs: 25px; */
+  /* --ion-grid-column-padding-sm: 25px; */
+  /* --ion-grid-column-padding-md: 25px; */
+  /* --ion-grid-column-padding-lg: 25px; */
+  /* --ion-grid-column-padding-xl: 25px; */
+  background-color: var(--ion-item-background);
+  border-bottom: 2px solid var(--ion-color-light-tint);
 }
 
 ion-col {
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* justify-content: center; */
-  /* Center content vertically */
+  padding-bottom: 6px;
+  padding-top: 0px;
+  padding-left: 8px;
+  padding-rigth: 8px;
+}
+
+.edit-button {
+  padding-bottom: 0px;
+  padding-top: 0px;
+  padding-left: 0px;
+  padding-rigth: 0px;
+  margin: 0px;
+  font-size: 30px;
+}
+
+ion-row {
+  padding-bottom: 5px;
+  padding-top: 5px;
+  /* padding-top: 0px; */
+  margin: 0px;
 }
 
 .note-text {

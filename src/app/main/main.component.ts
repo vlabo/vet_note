@@ -3,10 +3,10 @@ import { AfterViewInit, Component, OnInit, Renderer2, ViewChild, ViewEncapsulati
 import { IonSearchbar, IonicModule } from '@ionic/angular';
 import { add } from 'ionicons/icons';
 import { addIcons } from "ionicons";
-import { Patient, PatientsService } from '../patients.service';
+import { ListPatient, PatientsService } from '../patients.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import Fuse, { FuseResult } from 'fuse.js';
-import { faMicrochip, faUser, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -22,30 +22,36 @@ export class MainComponent implements OnInit, AfterViewInit {
   microchip = faMicrochip;
   user = faUser;
   minus = faMinus;
+  phone = faPhone;
 
+  // searchbar reference used for filtering.
   @ViewChild('searchbar', { static: false }) searchbar!: IonSearchbar;
 
-  patients: Patient[] = [];
+  patients: ListPatient[] = [];
+  filteredPatients: ListPatient[] = [];
 
-  filteredPatients: Patient[] = [];
-  fuse: Fuse<Patient>;
+  fuse: Fuse<ListPatient>;
 
   searchQuery: string | null = "";
-  searchResult: FuseResult<Patient>[] | undefined;
+  searchResult: FuseResult<ListPatient>[] | undefined;
 
   constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService) {
     this.fuse = new Fuse(this.patients, {});
   }
 
   ngOnInit() {
+    // Initialization.
     addIcons({ "add": add });
-    this.patients = this.patientsService.getPatients()
+
+    // TODO: if new patients come from the server this need to be updated. 
+    this.patients = this.patientsService.getPatientList()
     this.filteredPatients = this.patients;
     this.fuse = new Fuse(this.patients, {
-      keys: ['Name', 'Owner.Name', 'IdNumber'],
+      keys: ['Name', 'Owner', 'ChipId', "Phone"],
       includeMatches: true,
     });
 
+    // the query parameter from the URL and filter the list based on it.
     this.searchQuery = this.route.snapshot.queryParamMap.get('query');
     if (this.searchQuery) {
       this.filterList(this.searchQuery);
@@ -66,6 +72,7 @@ export class MainComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/patient/new']);
   }
 
+  // onSearch is called when the search input changes. It filters the list of patients based on the search query.
   onSearch(event: any): void {
     const query = event.target.value;
     this.searchQuery = query;
@@ -78,6 +85,7 @@ export class MainComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // filterList calls the filter function of the fuse.js library to filter the patient list.
   filterList(query: string): void {
     this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true});
     const result = this.fuse.search(query);
@@ -85,8 +93,9 @@ export class MainComponent implements OnInit, AfterViewInit {
     this.filteredPatients = result.map(res => res.item);
   }
 
-  highlight(p: Patient, key: string, includeEmpty: boolean = true): string {
-    let highlightedText: string = p[key as keyof Patient] as string;
+  // highlight checks the search result and adds blue bold tag to all the matched characters of they key.
+  highlight(p: ListPatient, key: string, includeEmpty: boolean = true): string {
+    let highlightedText: string = p[key as keyof ListPatient] as string;
     var hasMatch = false;
     if (this.searchResult) {
       this.searchResult.forEach(m => {

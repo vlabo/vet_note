@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Patient, PatientsService, Procedure } from '../patients.service';
+import { ViewPatient, PatientsService, Procedure } from '../patients.service';
 import { CommonModule } from '@angular/common';
 import { IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +35,7 @@ export class PatientComponent implements OnInit, OnDestroy {
   check = faCheck;
   xIcon = faX;
 
-  patient: Patient | undefined = undefined;
+  patient: ViewPatient | undefined = undefined;
   procedures: Procedure[] = [];
   originalPatient: any;
   isViewProcedure = false;

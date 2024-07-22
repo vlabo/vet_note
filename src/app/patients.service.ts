@@ -9,7 +9,7 @@ export class Procedure {
   Details: String = "";
 }
 
-export class Patient {
+class Patient {
   Id: string = "";
 
   Type: string = "";
@@ -20,6 +20,7 @@ export class Patient {
   Weight: number = 0;
   Castrated: boolean = false;
   LastModified: Date = new Date();
+  Note: string = "";
 
   Procedures: Procedure[] = [];
   Owner: string = "";
@@ -33,9 +34,25 @@ export class ListPatient {
   ChipId: string = "";
   Owner: string = "";
   Phone: string = "";
+
+
+  static fromPatient(p: Patient): ListPatient {
+    return {
+      Id: p.Id,
+      Type: p.Type,
+      Name: p.Name,
+      ChipId: p.ChipId,
+      Owner: p.Owner,
+      Phone: p.OwnerPhone,
+    }
+  }
 }
 
 export class ViewPatient {
+  static fieldsToCheck: (keyof ViewPatient)[] = [
+    'Type', 'Name', 'Gender', 'BirthDate', 'ChipId', 'Weight', 'Castrated', 'Note', 'Owner', 'OwnerPhone'
+  ];
+
   Id: string = "";
 
   Type: string = "";
@@ -45,10 +62,27 @@ export class ViewPatient {
   ChipId: string = "";
   Weight: number = 0;
   Castrated: boolean = false;
+  Note: string = "";
 
   Procedures: Procedure[] = [];
   Owner: string = "";
   OwnerPhone: string = "";
+
+
+  static fromPatient(patient: Patient): ViewPatient {
+    const viewPatient = new ViewPatient();
+    viewPatient.Id = patient.Id;
+
+    // Iterate over the specified fields
+    this.fieldsToCheck.forEach(key => {
+      // @ts-ignore
+      viewPatient[key] = patient[key];
+    });
+
+    viewPatient.Procedures = patient.Procedures
+
+    return viewPatient;
+  }
 }
 
 
@@ -94,6 +128,7 @@ export class PatientsService {
       LastModified: new Date("2023-01-01"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -109,6 +144,7 @@ export class PatientsService {
       LastModified: new Date("2023-02-15"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -124,6 +160,7 @@ export class PatientsService {
       LastModified: new Date("2023-03-10"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -139,6 +176,7 @@ export class PatientsService {
       LastModified: new Date("2023-04-20"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -154,6 +192,7 @@ export class PatientsService {
       LastModified: new Date("2023-05-25"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -169,6 +208,7 @@ export class PatientsService {
       LastModified: new Date("2023-01-01"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -184,6 +224,7 @@ export class PatientsService {
       LastModified: new Date("2023-02-15"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     patient = {
       Id: "8",
@@ -198,6 +239,7 @@ export class PatientsService {
       LastModified: new Date("2023-03-10"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -213,6 +255,7 @@ export class PatientsService {
       LastModified: new Date("2023-04-20"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
     patient = {
@@ -228,6 +271,7 @@ export class PatientsService {
       LastModified: new Date("2023-05-25"),
       Weight: 13,
       Castrated: false,
+      Note: "",
     };
     this.patients.set(patient.Id, patient);
   }
@@ -235,27 +279,9 @@ export class PatientsService {
     this.generateMockData();
   }
 
-
-  // public getPatients() {
-  //   return Array.from(this.patients.values())
-  // }
-
   public getPatient(key: string): ViewPatient | undefined {
     const patient = this.patients.get(key);
-    return patient ? {
-      Id: patient.Id,
-      Type: patient.Type,
-      Name: patient.Name,
-      Gender: patient.Gender,
-      BirthDate: patient.BirthDate,
-      ChipId: patient.ChipId,
-      Weight: patient.Weight,
-      Castrated: patient.Castrated,
-
-      Procedures: patient.Procedures,
-      Owner: patient.Owner,
-      OwnerPhone: patient.OwnerPhone,
-    } : undefined;
+    return patient ? ViewPatient.fromPatient(patient) : undefined;
   }
 
   public getProcedure(key: string): Procedure | undefined {
@@ -279,14 +305,7 @@ export class PatientsService {
   public getPatientList(): ListPatient[] {
     var list: ListPatient[] = [];
     this.patients.forEach(function(p) {
-      list.push({
-        Id: p.Id,
-        Type: p.Type,
-        Name: p.Name,
-        ChipId: p.ChipId,
-        Owner: p.Owner,
-        Phone: p.OwnerPhone,
-      })
+      list.push(ListPatient.fromPatient(p))
     });
     return list;
   }
@@ -303,8 +322,25 @@ export class PatientsService {
     patient?.Procedures.unshift(procedure);
   }
 
-  public updatePatient(patient: ViewPatient) {
-    // this.patients.set(patient.Id, patient);
+  public updatePatient(view: ViewPatient) {
+    var patient = this.patients.get(view.Id);
+    if (!patient) {
+      patient = new Patient();
+      patient.Id = uuid.v4();
+      this.patients.set(patient.Id, patient);
+    }
+
+       // Iterate over the specified fields
+    ViewPatient.fieldsToCheck.forEach(key => {
+      // @ts-ignore
+      if (patient[key] !== view[key]) {
+        // @ts-ignore
+        patient[key] = view[key];
+      }
+    });
+
+    // Update the LastModified date
+    patient.LastModified = new Date();
   }
 
   public updateProcedure(procedure: Procedure) {

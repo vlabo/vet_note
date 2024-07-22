@@ -68,13 +68,9 @@
       <ion-col size="2"></ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea class="note-text" placeholder="Бележка" autoGrow="true"></ion-textarea>
+  <ion-textarea class="note-text" [(ngModel)]="patient.Note" (ionBlur)="updatePatient()" placeholder="Бележка" autoGrow="true"></ion-textarea>
   <ion-item>
     <ion-title>Исторя</ion-title>
-    <!-- <ion-button (click)="createProcedure()"> -->
-    <!-- <ion-icon slot="start" name="add"></ion-icon> -->
-    <!-- Нов Запис -->
-    <!-- </ion-button> -->
   </ion-item>
 
   <ion-list>

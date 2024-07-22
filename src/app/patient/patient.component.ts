@@ -6,7 +6,7 @@ import { IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone, faWeightHanging, faCheck, faX} from '@fortawesome/free-solid-svg-icons';
+import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone, faWeightHanging, faCheck, faX } from '@fortawesome/free-solid-svg-icons';
 
 import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, calendar, heartHalf } from 'ionicons/icons';
 import { addIcons } from "ionicons";
@@ -70,12 +70,14 @@ export class PatientComponent implements OnInit, OnDestroy {
         return;
       }
       this.patient = this.patientService.getPatient(id);
+      console.log(this.patient);
       // this.procedures = this.patientService.getProcedures(this.patient!.Procedures);
     });
   }
 
   ngOnDestroy() {
     this.isViewProcedure = false;
+    this.updatePatient();
   }
 
   openEdit() {
@@ -107,6 +109,11 @@ export class PatientComponent implements OnInit, OnDestroy {
     return formatDate(data, "dd.MM.yyyy", "en-US");
   }
 
+  updatePatient() {
+    if (this.patient) {
+      this.patientService.updatePatient(this.patient);
+    }
+  }
 
   getAge(): string {
     let now = new Date()

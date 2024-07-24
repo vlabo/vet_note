@@ -1,89 +1,8 @@
 import { Injectable } from '@angular/core';
 import * as uuid from 'uuid';
-
-
-export class Procedure {
-  Id: string = "";
-  Type: string = "";
-  Date: string = "";
-  Details: String = "";
-}
-
-class Patient {
-  Id: string = "";
-
-  Type: string = "";
-  Name: string = "";
-  Gender: "male" | "female" | "unknown" = "unknown";
-  BirthDate: string = "";
-  ChipId: string = "";
-  Weight: number = 0;
-  Castrated: boolean = false;
-  LastModified: Date = new Date();
-  Note: string = "";
-
-  Procedures: Procedure[] = [];
-  Owner: string = "";
-  OwnerPhone: string = "";
-}
-
-export class ListPatient {
-  Id: string = "";
-  Type: string = "";
-  Name: string = "";
-  ChipId: string = "";
-  Owner: string = "";
-  Phone: string = "";
-
-
-  static fromPatient(p: Patient): ListPatient {
-    return {
-      Id: p.Id,
-      Type: p.Type,
-      Name: p.Name,
-      ChipId: p.ChipId,
-      Owner: p.Owner,
-      Phone: p.OwnerPhone,
-    }
-  }
-}
-
-export class ViewPatient {
-  static fieldsToCheck: (keyof ViewPatient)[] = [
-    'Type', 'Name', 'Gender', 'BirthDate', 'ChipId', 'Weight', 'Castrated', 'Note', 'Owner', 'OwnerPhone'
-  ];
-
-  Id: string = "";
-
-  Type: string = "";
-  Name: string = "";
-  Gender: "male" | "female" | "unknown" = "unknown";
-  BirthDate: string = "";
-  ChipId: string = "";
-  Weight: number = 0;
-  Castrated: boolean = false;
-  Note: string = "";
-
-  Procedures: Procedure[] = [];
-  Owner: string = "";
-  OwnerPhone: string = "";
-
-
-  static fromPatient(patient: Patient): ViewPatient {
-    const viewPatient = new ViewPatient();
-    viewPatient.Id = patient.Id;
-
-    // Iterate over the specified fields
-    this.fieldsToCheck.forEach(key => {
-      // @ts-ignore
-      viewPatient[key] = patient[key];
-    });
-
-    viewPatient.Procedures = patient.Procedures
-
-    return viewPatient;
-  }
-}
+import { Patient } from '../../server/bindings/Patient';
+import { Procedure } from '../../server/bindings/Procedure';
+import { ListPatient } from '../../server/bindings/ListPatient';
 
 
 @Injectable({
@@ -92,196 +11,13 @@ export class ViewPatient {
 export class PatientsService {
   private patients = new Map<string, Patient>()
   private procedures = new Map<string, Procedure>()
-  private types: String[] = ["Куче", "Котка", "Прица", "Заек"];
+  private types: String[] = ["Куче", "Котка", "Птица", "Заек"];
 
-  private generateMockData() {
-    this.procedures.set("0510ee92-b30e-4bff-a6d9-6af70b0e6acc", {
-      Id: "0510ee92-b30e-4bff-a6d9-6af70b0e6acc",
-      Type: 'Преглед',
-      Date: '2023-01-15',
-      Details: 'Routine check-up. All vitals are normal.'
-    });
-    this.procedures.set("b7306c26-8b48-4a8b-83c9-a2425c117364", {
-      Id: "b7306c26-8b48-4a8b-83c9-a2425c117364",
-      Type: 'Ваксина',
-      Date: '2023-02-20',
-      Details: 'Administered rabies vaccine.'
-    });
-    this.procedures.set("661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1", {
-      Id: "661a3ed6-c2a8-4b55-a3e2-d2f11afedbd1",
-      Type: 'Кръвно изледване',
-      Date: '2023-03-10',
-      Details: 'Blood test for heartworm. Results are negative.'
-    });
+  constructor() { }
 
-    let procedures = Array.from(this.procedures.values());
-    let patient: Patient = {
-      Id: "1",
-      Type: "Куче",
-      Name: "Buddy",
-      Owner: "John Doe",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "male",
-      BirthDate: "2018-01-15",
-      ChipId: "482736194",
-      LastModified: new Date("2023-01-01"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "2",
-      Type: "Котка",
-      Name: "Whiskers",
-      Owner: "Jane Smith",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "female",
-      BirthDate: "2019-05-20",
-      ChipId: "193847562",
-      LastModified: new Date("2023-02-15"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "3",
-      Type: "Прица",
-      Name: "Tweety",
-      Owner: "Alice Johnson",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "unknown",
-      BirthDate: "2020-07-30",
-      ChipId: "758392014",
-      LastModified: new Date("2023-03-10"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "4",
-      Type: "Заек",
-      Name: "Thumper",
-      Owner: "Bob Brown",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "female",
-      BirthDate: "2021-11-05",
-      ChipId: "100237000236519",
-      LastModified: new Date("2023-04-20"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "5",
-      Type: "Куче",
-      Name: "Max",
-      Owner: "Charlie Davis",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "male",
-      BirthDate: "2017-03-10",
-      ChipId: "100237000236511",
-      LastModified: new Date("2023-05-25"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "6",
-      Type: "Куче",
-      Name: "Бъди",
-      Owner: "Иван Иванов",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "male",
-      BirthDate: "2018-01-15",
-      ChipId: "100237000236514",
-      LastModified: new Date("2023-01-01"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "7",
-      Type: "Котка",
-      Name: "Мърка",
-      Owner: "Мария Петрова",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "female",
-      BirthDate: "2019-05-20",
-      ChipId: "100237000236513",
-      LastModified: new Date("2023-02-15"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    patient = {
-      Id: "8",
-      Type: "Прица",
-      Name: "Чурулик",
-      Owner: "Александър Георгиев",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "unknown",
-      BirthDate: "2020-07-30",
-      ChipId: "100237000236512",
-      LastModified: new Date("2023-03-10"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "9",
-      Type: "Rabbit",
-      Name: "Тупър",
-      Owner: "Борислав Димитров",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "female",
-      BirthDate: "2021-11-05",
-      ChipId: "100237000236517",
-      LastModified: new Date("2023-04-20"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-    patient = {
-      Id: "10",
-      Type: "Куче",
-      Name: "Макс",
-      Owner: "Георги Василев",
-      OwnerPhone: "08773423453",
-      Procedures: procedures,
-      Gender: "male",
-      BirthDate: "2017-03-10",
-      ChipId: "100237000236513",
-      LastModified: new Date("2023-05-25"),
-      Weight: 13,
-      Castrated: false,
-      Note: "",
-    };
-    this.patients.set(patient.Id, patient);
-  }
-  constructor() {
-    this.generateMockData();
-  }
-
-  public getPatient(key: string): ViewPatient | undefined {
+  public getPatient(key: string): Patient | undefined {
     const patient = this.patients.get(key);
-    return patient ? ViewPatient.fromPatient(patient) : undefined;
+    return patient ? { ...patient } : undefined;
   }
 
   public getProcedure(key: string): Procedure | undefined {
@@ -302,49 +38,53 @@ export class PatientsService {
     return procedures;
   }
 
-  public getPatientList(): ListPatient[] {
-    var list: ListPatient[] = [];
-    this.patients.forEach(function(p) {
-      list.push(ListPatient.fromPatient(p))
-    });
-    return list;
+  public async getPatientList(): Promise<ListPatient[]> {
+    try {
+      const response = await fetch('http://localhost:8080/v1/patient-list');
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      const list: ListPatient[] = await response.json();
+      return list;
+    } catch (error) {
+      console.error("Failed to fetch patient list:", error);
+      return []; // Return an empty array in case of error
+    }
   }
 
-  public addPatient(patient: ViewPatient) {
-    patient.Id = uuid.v4();
-    // this.patients.set(patient.Id, patient);
+  public addPatient(patient: Patient) {
+    patient.id = uuid.v4();
+    this.patients.set(patient.id, patient);
   }
 
   public addProcedure(patientId: string, procedure: Procedure) {
-    procedure.Id = uuid.v4();
-    this.procedures.set(procedure.Id, procedure);
-    let patient = this.patients.get(patientId);
-    patient?.Procedures.unshift(procedure);
+    procedure.id = uuid.v4();
+    this.procedures.set(procedure.id, procedure);
   }
 
-  public updatePatient(view: ViewPatient) {
-    var patient = this.patients.get(view.Id);
-    if (!patient) {
-      patient = new Patient();
-      patient.Id = uuid.v4();
-      this.patients.set(patient.Id, patient);
-    }
+  public updatePatient(view: Patient) {
+    // var patient = this.patients.get(view.Id);
+    // if (!patient) {
+    //   patient = {};
+    //   patient.id = uuid.v4();
+    //   this.patients.set(patient.Id, patient);
+    // }
 
-       // Iterate over the specified fields
-    ViewPatient.fieldsToCheck.forEach(key => {
-      // @ts-ignore
-      if (patient[key] !== view[key]) {
-        // @ts-ignore
-        patient[key] = view[key];
-      }
-    });
+    //    // Iterate over the specified fields
+    // ViewPatient.fieldsToCheck.forEach(key => {
+    //   // @ts-ignore
+    //   if (patient[key] !== view[key]) {
+    //     // @ts-ignore
+    //     patient[key] = view[key];
+    //   }
+    // });
 
-    // Update the LastModified date
-    patient.LastModified = new Date();
+    // // Update the LastModified date
+    // patient.LastModified = new Date();
   }
 
   public updateProcedure(procedure: Procedure) {
-    this.procedures.set(procedure.Id, procedure);
+    this.procedures.set(procedure.id, procedure);
   }
 
   public getTypes(): String[] {

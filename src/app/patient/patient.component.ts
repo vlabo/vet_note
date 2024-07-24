@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ViewPatient, PatientsService, Procedure } from '../patients.service';
+import { PatientsService } from '../patients.service';
 import { CommonModule } from '@angular/common';
 import { IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,8 @@ import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, 
 import { addIcons } from "ionicons";
 import { Location } from '@angular/common';
 import { formatDate } from '@angular/common';
+import { Patient } from '../../../server/bindings/Patient';
+import { Procedure } from '../../../server/bindings/Procedure';
 
 @Component({
   selector: 'app-patient',
@@ -35,12 +37,12 @@ export class PatientComponent implements OnInit, OnDestroy {
   check = faCheck;
   xIcon = faX;
 
-  patient: ViewPatient | undefined = undefined;
+  patient: Patient | undefined = undefined;
   procedures: Procedure[] = [];
   originalPatient: any;
   isViewProcedure = false;
 
-  selectedProcedure: Procedure = new Procedure();
+  selectedProcedure: Procedure | null = null;
 
   @ViewChild('procedureDetailsModal', { static: true }) modal!: IonModal;
 
@@ -81,7 +83,7 @@ export class PatientComponent implements OnInit, OnDestroy {
   }
 
   openEdit() {
-    this.router.navigate(["/patient", this.patient?.Id, "edit"]);
+    this.router.navigate(["/patient", this.patient?.id, "edit"]);
   }
 
   goBack(): void {
@@ -94,13 +96,13 @@ export class PatientComponent implements OnInit, OnDestroy {
 
   openViewProcedure(procedure: Procedure) {
     if (this.patient) {
-      this.router.navigate(['/procedure', procedure.Id]);
+      this.router.navigate(['/procedure', procedure.id]);
     }
   }
 
   createProcedure(): void {
     if (this.patient) {
-      this.router.navigate(['/procedure', this.patient.Id, 'new']);
+      this.router.navigate(['/procedure', this.patient.id, 'new']);
       this.isViewProcedure = false;
     }
   }
@@ -117,7 +119,7 @@ export class PatientComponent implements OnInit, OnDestroy {
 
   getAge(): string {
     let now = new Date()
-    let date = new Date(this.patient!.BirthDate)
+    let date = new Date(this.patient!.birth_date)
     let years = now.getFullYear() - date.getFullYear();
     let months = now.getMonth() - date.getMonth();
 

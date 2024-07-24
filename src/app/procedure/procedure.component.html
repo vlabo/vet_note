@@ -13,16 +13,16 @@
 <ion-content>
   <form *ngIf="procedure">
     <ion-item>
-      <ion-label *ngIf="!isEditMode">{{ procedure.Type }}</ion-label>
-      <ion-select id="procedureType" [(ngModel)]="procedure.Type" name="type" *ngIf="isEditMode">
+      <ion-label *ngIf="!isEditMode">{{ procedure.type }}</ion-label>
+      <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" *ngIf="isEditMode">
         <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
       <ion-datetime-button datetime="datetime" [disabled]="!isEditMode"></ion-datetime-button>
     </ion-item>
 
-    <ion-textarea [(ngModel)]="procedure.Details" name="details" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
+    <ion-textarea [(ngModel)]="procedure.details" name="details" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
     <ion-label *ngIf="!isEditMode">
-      <pre>{{ procedure.Details }}</pre>
+      <pre>{{ procedure.details }}</pre>
     </ion-label>
     <ion-row *ngIf="isEditMode">
       <ion-col>

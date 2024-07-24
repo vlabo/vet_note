@@ -6,7 +6,7 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ patient.Name }} - {{ patient.Type }}</ion-title>
+      <ion-title>{{ patient.name }} - {{ patient.type }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
@@ -14,7 +14,7 @@
     <ion-row class="ion-align-items-center">
       <ion-col>
         <fa-icon [icon]="cake" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.BirthDate | date: 'dd.MM.YYYY' }}</ion-label>
+        <ion-label>{{ patient.birth_date | date: 'dd.MM.YYYY' }}</ion-label>
       </ion-col>
       <ion-col>
         <fa-icon [icon]="calendar" class="ion-margin-end"></fa-icon>
@@ -28,29 +28,29 @@
     </ion-row>
     <ion-row class="ion-align-items-center">
       <ion-col>
-        <fa-icon *ngIf="patient.Gender == 'unknown'" [icon]="gender" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="patient.Gender == 'unknown'">Неопределен</ion-label>
-        <fa-icon *ngIf="patient.Gender == 'male'" [icon]="mars" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="patient.Gender == 'male'">Мъжки</ion-label>
-        <fa-icon *ngIf="patient.Gender == 'female'" [icon]="venus" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="patient.Gender == 'female'">Женски</ion-label>
+        <fa-icon *ngIf="patient.gender == 'Unknown'" [icon]="gender" class="ion-margin-end"></fa-icon>
+        <ion-label *ngIf="patient.gender == 'Unknown'">Неопределен</ion-label>
+        <fa-icon *ngIf="patient.gender == 'Male'" [icon]="mars" class="ion-margin-end"></fa-icon>
+        <ion-label *ngIf="patient.gender == 'Male'">Мъжки</ion-label>
+        <fa-icon *ngIf="patient.gender == 'Female'" [icon]="venus" class="ion-margin-end"></fa-icon>
+        <ion-label *ngIf="patient.gender == 'Female'">Женски</ion-label>
       </ion-col>
       <ion-col>
-        <fa-icon [icon]="weight" class="ion-margin-end"></fa-icon>
-        <ion-label>{{patient.Weight}}кг</ion-label>
+        <fa-icon [icon]="weight" c!lass="ion-margin-end"></fa-icon>
+        <ion-label>{{patient.weight}}кг</ion-label>
       </ion-col>
       <ion-col size="2"></ion-col>
     </ion-row>
     <ion-row class="ion-align-items-center">
       <ion-col>
-        <fa-icon *ngIf="patient.Castrated" [icon]="check" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="patient.Castrated">Кастрирано</ion-label>
-        <fa-icon *ngIf="!patient.Castrated" [icon]="xIcon" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="!patient.Castrated">Некастрирано</ion-label>
+        <fa-icon *ngIf="patient.castrated" [icon]="check" class="ion-margin-end"></fa-icon>
+        <ion-label *ngIf="patient.castrated">Кастрирано</ion-label>
+        <fa-icon *ngIf="!patient.castrated" [icon]="xIcon" class="ion-margin-end"></fa-icon>
+        <ion-label *ngIf="!patient.castrated">Некастрирано</ion-label>
       </ion-col>
       <ion-col>
         <fa-icon [icon]="microchip" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.ChipId }}</ion-label>
+        <ion-label>{{ patient.chip_id }}</ion-label>
       </ion-col>
       <ion-col size="2"></ion-col>
     </ion-row>
@@ -59,25 +59,25 @@
     <ion-row>
       <ion-col>
         <fa-icon [icon]="user" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.Owner }}</ion-label>
+        <ion-label>{{ patient.owner }}</ion-label>
       </ion-col>
       <ion-col>
         <fa-icon [icon]="phone" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.OwnerPhone }}</ion-label>
+        <ion-label>{{ patient.owner_phone }}</ion-label>
       </ion-col>
       <ion-col size="2"></ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea class="note-text" [(ngModel)]="patient.Note" (ionBlur)="updatePatient()" placeholder="Бележка" autoGrow="true"></ion-textarea>
+  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionBlur)="updatePatient()" placeholder="Бележка" autoGrow="true"></ion-textarea>
   <ion-item>
     <ion-title>Исторя</ion-title>
   </ion-item>
 
   <ion-list>
-    <ion-item *ngFor="let procedure of patient.Procedures" (click)="openViewProcedure(procedure)">
+    <ion-item *ngFor="let procedure of patient.procedures" (click)="openViewProcedure(procedure)">
       <ion-label>
-        <h2>{{ procedure.Type }}</h2>
-        <p>{{ procedure.Date | date: 'dd.MM.YYYY' }}</p>
+        <h2>{{ procedure.type }}</h2>
+        <p>{{ procedure.date | date: 'dd.MM.YYYY' }}</p>
       </ion-label>
       <ion-icon slot="end" name="chevron-forward"></ion-icon>
     </ion-item>

@@ -3,11 +3,12 @@ import { AfterViewInit, Component, OnInit, Renderer2, ViewChild, ViewEncapsulati
 import { IonSearchbar, IonicModule } from '@ionic/angular';
 import { add } from 'ionicons/icons';
 import { addIcons } from "ionicons";
-import { ListPatient, PatientsService } from '../patients.service';
+import { PatientsService } from '../patients.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import Fuse, { FuseResult } from 'fuse.js';
 import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ListPatient } from '../../../server/bindings/ListPatient';
 
 @Component({
   selector: 'app-main',
@@ -39,15 +40,15 @@ export class MainComponent implements OnInit, AfterViewInit {
     this.fuse = new Fuse(this.patients, {});
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // Initialization.
     addIcons({ "add": add });
 
     // TODO: if new patients come from the server this need to be updated. 
-    this.patients = this.patientsService.getPatientList()
+    this.patients = await this.patientsService.getPatientList()
     this.filteredPatients = this.patients;
     this.fuse = new Fuse(this.patients, {
-      keys: ['Name', 'Owner', 'ChipId', "Phone"],
+      keys: ['name', 'owner', 'chip_id', "phone"],
       includeMatches: true,
     });
 

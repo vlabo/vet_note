@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { ViewPatient, PatientsService } from '../patients.service';
+import { PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { Patient } from '../../../server/bindings/Patient';
 
 @Component({
   selector: 'app-edit-patient',
@@ -15,7 +17,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   imports: [CommonModule, FormsModule, IonicModule]
 })
 export class EditPatientComponent implements OnInit {
-  patient: ViewPatient = new ViewPatient();
+  patient: Patient | null = null;
   types: String[] = [];
   newMode = false;
 
@@ -50,11 +52,11 @@ export class EditPatientComponent implements OnInit {
 
   save(): void {
     if (this.newMode) {
-      this.patientsService.addPatient(this.patient);
+      this.patientsService.addPatient(this.patient!);
       this.newMode = false;
-      this.router.navigate(["/patient", this.patient.Id], { replaceUrl: true })
+      this.router.navigate(["/patient", this.patient!.id], { replaceUrl: true })
     } else {
-      this.patientsService.updatePatient(this.patient);
+      this.patientsService.updatePatient(this.patient!);
       this.location.back();
     }
   }

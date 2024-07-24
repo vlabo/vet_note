@@ -3,10 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PatientsService, Procedure } from '../patients.service';
+import { PatientsService } from '../patients.service';
 
 import { addIcons } from "ionicons";
 import { arrowBack } from "ionicons/icons";
+import { Procedure } from '../../../server/bindings/Procedure';
 
 @Component({
   selector: 'app-procedure',
@@ -16,7 +17,7 @@ import { arrowBack } from "ionicons/icons";
   standalone: true,
 })
 export class ProcedureComponent implements OnInit {
-  procedure: Procedure = new Procedure();
+  procedure: Procedure | null = null;
   isEditMode: boolean = false;
   isNewMode: boolean = false;
 
@@ -50,7 +51,7 @@ export class ProcedureComponent implements OnInit {
           if (procedure) {
             this.procedure = { ...procedure };
             console.log(this.procedure);
-            this.date = this.procedure.Date;
+            this.date = this.procedure.date;
           }
         }
     });
@@ -74,10 +75,10 @@ export class ProcedureComponent implements OnInit {
   saveProcedure(): void {
     // TODO: update date
     if (this.isNewMode) {
-      this.patientsService.addProcedure(this.patientId!, this.procedure);
-      this.router.navigate(["procedure", this.procedure.Id], { queryParams: { edit: false },  replaceUrl: true });
+      this.patientsService.addProcedure(this.patientId!, this.procedure!);
+      this.router.navigate(["procedure", this.procedure!.id], { queryParams: { edit: false },  replaceUrl: true });
     } else if (this.isEditMode) {
-      this.patientsService.updateProcedure(this.procedure);
+      this.patientsService.updateProcedure(this.procedure!);
       this.goBack();
     }
   }

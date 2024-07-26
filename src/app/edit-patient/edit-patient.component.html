@@ -29,7 +29,7 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Тегло (кг)</ion-label>
-      <ion-input [(ngModel)]="patient!.weight" placeholder="0"></ion-input>
+      <ion-input [(ngModel)]="patient!.weight" type="number" inputmode="numeric" placeholder="0"></ion-input>
     </ion-item>
     <ion-item>
       <ion-toggle position="stacked" [(ngModel)]="patient!.castrated">Кастриранo</ion-toggle>
@@ -44,11 +44,11 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Телефон на собственик</ion-label>
-      <ion-input [(ngModel)]="patient!.owner_phone" placeholder="0812345679"></ion-input>
+      <ion-input [(ngModel)]="patient!.ownerPhone" placeholder="0812345679"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Чип</ion-label>
-      <ion-input [(ngModel)]="patient!.chip_id" placeholder="100..."></ion-input>
+      <ion-input [(ngModel)]="patient!.chipId" placeholder="100..."></ion-input>
     </ion-item>
   </ion-list>
   <ion-button expand="full" (click)="save()">Save</ion-button>

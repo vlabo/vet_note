@@ -8,7 +8,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import Fuse, { FuseResult } from 'fuse.js';
 import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ListPatient } from '../../../server/bindings/ListPatient';
+import { ViewListPatient } from '../types';
 
 @Component({
   selector: 'app-main',
@@ -28,13 +28,13 @@ export class MainComponent implements OnInit, AfterViewInit {
   // searchbar reference used for filtering.
   @ViewChild('searchbar', { static: false }) searchbar!: IonSearchbar;
 
-  patients: ListPatient[] = [];
-  filteredPatients: ListPatient[] = [];
+  patients: ViewListPatient[] = [];
+  filteredPatients: ViewListPatient[] = [];
 
-  fuse: Fuse<ListPatient>;
+  fuse: Fuse<ViewListPatient>;
 
   searchQuery: string | null = "";
-  searchResult: FuseResult<ListPatient>[] | undefined;
+  searchResult: FuseResult<ViewListPatient>[] | undefined;
 
   constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService) {
     this.fuse = new Fuse(this.patients, {});
@@ -95,8 +95,8 @@ export class MainComponent implements OnInit, AfterViewInit {
   }
 
   // highlight checks the search result and adds blue bold tag to all the matched characters of they key.
-  highlight(p: ListPatient, key: string, includeEmpty: boolean = true): string {
-    let highlightedText: string = p[key as keyof ListPatient] as string;
+  highlight(p: ViewListPatient, key: string, includeEmpty: boolean = true): string {
+    let highlightedText: string = p[key as keyof ViewListPatient] as string;
     var hasMatch = false;
     if (this.searchResult) {
       this.searchResult.forEach(m => {

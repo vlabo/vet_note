@@ -7,7 +7,7 @@ import { PatientsService } from '../patients.service';
 
 import { addIcons } from "ionicons";
 import { arrowBack } from "ionicons/icons";
-import { Procedure } from '../../../server/bindings/Procedure';
+import { ViewProcedure } from '../types';
 
 @Component({
   selector: 'app-procedure',
@@ -17,7 +17,7 @@ import { Procedure } from '../../../server/bindings/Procedure';
   standalone: true,
 })
 export class ProcedureComponent implements OnInit {
-  procedure: Procedure | null = null;
+  procedure: ViewProcedure | null = null;
   isEditMode: boolean = false;
   isNewMode: boolean = false;
 

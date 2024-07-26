@@ -6,8 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-
-import { Patient } from '../../../server/bindings/Patient';
+import { ViewPatient } from '../types';
 
 @Component({
   selector: 'app-edit-patient',
@@ -17,7 +16,7 @@ import { Patient } from '../../../server/bindings/Patient';
   imports: [CommonModule, FormsModule, IonicModule]
 })
 export class EditPatientComponent implements OnInit {
-  patient: Patient | null = null;
+  patient: ViewPatient | null = null;
   types: String[] = [];
   newMode = false;
 
@@ -26,22 +25,38 @@ export class EditPatientComponent implements OnInit {
     private location: Location,
     private route: ActivatedRoute,
     private router: Router,
-  ) { }
+  ) {
+    this.patient = {
+      id: "",
+      type: "",
+      name: "",
+      gender: 'unknown',
+      birthDate: "",
+      chipId: "",
+      weight: 0 /* float64 */,
+      castrated: false,
+      lastModified: "",
+      note: "",
+      owner: "",
+      ownerPhone: "",
+      procedures: [],
+    };
+  }
 
   ngOnInit(): void {
     this.route.url.subscribe(urlSegments => {
       var lastPathSegment = urlSegments[urlSegments.length - 1].path
-      if(lastPathSegment === "new") {
+      if (lastPathSegment === "new") {
         this.newMode = true;
       }
     });
 
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe(async params => {
       let id = params.get('id');
       if (id === null) {
         return;
       }
-      var patient = this.patientsService.getPatient(id);
+      var patient = await this.patientsService.getPatient(id);
       if (patient) {
         console.log(patient);
         this.patient = patient;
@@ -50,15 +65,23 @@ export class EditPatientComponent implements OnInit {
     this.types = this.patientsService.getTypes();
   }
 
-  save(): void {
-    if (this.newMode) {
-      this.patientsService.addPatient(this.patient!);
-      this.newMode = false;
-      this.router.navigate(["/patient", this.patient!.id], { replaceUrl: true })
-    } else {
-      this.patientsService.updatePatient(this.patient!);
-      this.location.back();
+  async save() {
+    this.patientsService.updatePatient(this.patient!).subscribe({
+      next: _ => {
+        if (this.newMode) {
+          this.patientsService.updatePatient(this.patient!);
+          this.newMode = false;
+          this.router.navigate(["/patient", this.patient!.id], { replaceUrl: true })
+        } else {
+          this.patientsService.updatePatient(this.patient!);
+          this.location.back();
+        }
+      },
+      error: error => {
+        console.error('Error updating patient:', error);
+      }
     }
+    );
   }
 
   cancel(): void {

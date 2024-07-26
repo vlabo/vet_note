@@ -12,8 +12,7 @@ import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, 
 import { addIcons } from "ionicons";
 import { Location } from '@angular/common';
 import { formatDate } from '@angular/common';
-import { Patient } from '../../../server/bindings/Patient';
-import { Procedure } from '../../../server/bindings/Procedure';
+import { ViewPatient, ViewProcedure } from '../types';
 
 @Component({
   selector: 'app-patient',
@@ -37,12 +36,12 @@ export class PatientComponent implements OnInit, OnDestroy {
   check = faCheck;
   xIcon = faX;
 
-  patient: Patient | undefined = undefined;
-  procedures: Procedure[] = [];
+  patient: ViewPatient | undefined = undefined;
+  procedures: ViewProcedure[] = [];
   originalPatient: any;
   isViewProcedure = false;
 
-  selectedProcedure: Procedure | null = null;
+  selectedProcedure: ViewProcedure | null = null;
 
   @ViewChild('procedureDetailsModal', { static: true }) modal!: IonModal;
 
@@ -66,12 +65,12 @@ export class PatientComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe(async params => {
       let id = params.get('id');
       if (id === null) {
         return;
       }
-      this.patient = this.patientService.getPatient(id);
+      this.patient = await this.patientService.getPatient(id);
       console.log(this.patient);
       // this.procedures = this.patientService.getProcedures(this.patient!.Procedures);
     });
@@ -94,7 +93,7 @@ export class PatientComponent implements OnInit, OnDestroy {
     this.isViewProcedure = isOpen;
   }
 
-  openViewProcedure(procedure: Procedure) {
+  openViewProcedure(procedure: ViewProcedure) {
     if (this.patient) {
       this.router.navigate(['/procedure', procedure.id]);
     }
@@ -113,13 +112,13 @@ export class PatientComponent implements OnInit, OnDestroy {
 
   updatePatient() {
     if (this.patient) {
-      this.patientService.updatePatient(this.patient);
+      this.patientService.updatePatient(this.patient).subscribe({});
     }
   }
 
   getAge(): string {
     let now = new Date()
-    let date = new Date(this.patient!.birth_date)
+    let date = new Date(this.patient!.birthDate)
     let years = now.getFullYear() - date.getFullYear();
     let months = now.getMonth() - date.getMonth();
 

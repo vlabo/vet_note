@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import * as uuid from 'uuid';
 import { ViewListPatient, ViewPatient, ViewProcedure } from './types';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -63,19 +62,14 @@ export class PatientsService {
   }
 
   public addPatient(patient: ViewPatient) {
-    patient.id = uuid.v4();
     this.patients.set(patient.id, patient);
   }
 
   public addProcedure(patientId: string, procedure: ViewProcedure) {
-    procedure.id = uuid.v4();
     this.procedures.set(procedure.id, procedure);
   }
 
   public updatePatient(view: ViewPatient): Observable<ViewPatient> {
-    if(!view.id) {
-      view.id = uuid.v4();
-    }
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     console.log("patient", view);
     return this.http.post<ViewPatient>('http://localhost:8080/v1/patient', view, { headers });

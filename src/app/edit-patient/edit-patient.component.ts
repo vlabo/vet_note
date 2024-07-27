@@ -16,7 +16,7 @@ import { ViewPatient } from '../types';
   imports: [CommonModule, FormsModule, IonicModule]
 })
 export class EditPatientComponent implements OnInit {
-  patient: ViewPatient | null = null;
+  patient: ViewPatient;
   types: String[] = [];
   newMode = false;
 
@@ -31,7 +31,7 @@ export class EditPatientComponent implements OnInit {
       type: "",
       name: "",
       gender: 'unknown',
-      birthDate: "",
+      birthDate: new Date().toISOString(),
       chipId: "",
       weight: 0 /* float64 */,
       castrated: false,
@@ -87,4 +87,5 @@ export class EditPatientComponent implements OnInit {
   cancel(): void {
     this.location.back();
   }
+
 }

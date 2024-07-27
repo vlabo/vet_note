@@ -3,8 +3,15 @@
 //////////
 // source: main.go
 
+export interface Procedure {
+  Model: any /* gorm.Model */;
+  Type: string;
+  Date: string;
+  Details: string;
+  PatientID: number /* uint */;
+}
 export interface Patient {
-  Id: string /* uuid */;
+  Model: any /* gorm.Model */;
   Type: string;
   Name: string;
   Gender: string;
@@ -16,19 +23,20 @@ export interface Patient {
   Note: string;
   Owner: string;
   OwnerPhone: string;
+  Procedures: Procedure[];
 }
 
 //////////
 // source: view.go
 
 export interface ViewProcedure {
-  id: string /* uuid */;
+  id: string;
   type: string;
   date: string;
   details: string;
 }
 export interface ViewListPatient {
-  id: string /* uuid */;
+  id: string;
   type: string;
   name: string;
   chipId: string;
@@ -36,7 +44,7 @@ export interface ViewListPatient {
   phone: string;
 }
 export interface ViewPatient {
-  id: string /* uuid */;
+  id: string;
   type: string;
   name: string;
   gender: 'unknown' | 'male' | 'female';

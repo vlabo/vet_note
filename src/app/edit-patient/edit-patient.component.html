@@ -1,17 +1,17 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title *ngIf="!newMode">Редактирай Пациент</ion-title>
-    <ion-title *ngIf="newMode">Нов Пациент</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="cancel()">Cancel</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
 <ion-content>
+  <ion-header>
+    <ion-toolbar>
+      <ion-title *ngIf="!newMode">Редактирай Пациент</ion-title>
+      <ion-title *ngIf="newMode">Нов Пациент</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="cancel()">Cancel</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
   <ion-list>
     <ion-item>
       <ion-label position="stacked">Тип</ion-label>
-      <ion-select [(ngModel)]="patient!.type">
+      <ion-select [(ngModel)]="patient!.type" interface="popover">
         <ion-select-option *ngFor="let type of types" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
     </ion-item>
@@ -21,7 +21,7 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Пол</ion-label>
-      <ion-select [(ngModel)]="patient!.gender">
+      <ion-select [(ngModel)]="patient!.gender" interface="popover">
         <ion-select-option value="unknown">Неопределен</ion-select-option>
         <ion-select-option value="male">Мъжки</ion-select-option>
         <ion-select-option value="female">Женски</ion-select-option>
@@ -54,8 +54,8 @@
   <ion-button expand="full" (click)="save()">Save</ion-button>
 </ion-content>
 
-<ion-modal [keepContentsMounted]="true">
+<ion-modal [keepContentsMounted]="true" trigger="datetime">
   <ng-template>
-    <ion-datetime id="datetime" presentation="date"></ion-datetime>
+    <ion-datetime id="datetime" [(ngModel)]="patient.birthDate" presentation="date"></ion-datetime>
   </ng-template>
 </ion-modal>

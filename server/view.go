@@ -1,25 +1,29 @@
 package main
 
-import "github.com/google/uuid"
+import (
+	"strconv"
+
+	"gorm.io/gorm"
+)
 
 type ViewProcedure struct {
-	Id      uuid.UUID `json:"id"`
-	Type    string    `json:"type"`
-	Date    string    `json:"date"`
-	Details string    `json:"details"`
+	Id      string `json:"id"`
+	Type    string `json:"type"`
+	Date    string `json:"date"`
+	Details string `json:"details"`
 }
 
 type ViewListPatient struct {
-	Id     uuid.UUID `json:"id"`
-	Type   string    `json:"type"`
-	Name   string    `json:"name"`
-	ChipId string    `json:"chipId"`
-	Owner  string    `json:"owner"`
-	Phone  string    `json:"phone"`
+	Id     string `json:"id"`
+	Type   string `json:"type"`
+	Name   string `json:"name"`
+	ChipId string `json:"chipId"`
+	Owner  string `json:"owner"`
+	Phone  string `json:"phone"`
 }
 
 type ViewPatient struct {
-	Id           uuid.UUID       `json:"id" gorm:"type:uuid;primary_key;"`
+	Id           string          `json:"id"`
 	Type         string          `json:"type"`
 	Name         string          `json:"name"`
 	Gender       string          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
@@ -35,8 +39,11 @@ type ViewPatient struct {
 }
 
 func (p *ViewPatient) asPatient() Patient {
+	id, _ := strconv.ParseUint(p.Id, 10, 64)
 	return Patient{
-		Id:           p.Id,
+		Model: gorm.Model{
+			ID: uint(id),
+		},
 		Type:         p.Type,
 		Name:         p.Name,
 		Gender:       p.Gender,

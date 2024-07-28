@@ -9,6 +9,6 @@ export const routes: Routes = [
   { path: 'patient/new', component: EditPatientComponent },
   { path: 'patient/:id', component: PatientComponent },
   { path: 'patient/:id/edit', component: EditPatientComponent },
-  { path: 'procedure/:patientId/new', component: ProcedureComponent }, 
-  { path: 'procedure/:procedureId', component: ProcedureComponent },
+  { path: 'procedure/:patientId/new', component: ProcedureComponent, data: { newMode: true } }, 
+  { path: 'procedure/:procedureId', component: ProcedureComponent , data: { newMode: false } },
 ];

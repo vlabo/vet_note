@@ -7,10 +7,11 @@ import (
 )
 
 type ViewProcedure struct {
-	Id      string `json:"id"`
-	Type    string `json:"type"`
-	Date    string `json:"date"`
-	Details string `json:"details"`
+	Id        string `json:"id"`
+	Type      string `json:"type"`
+	Date      string `json:"date"`
+	Details   string `json:"details"`
+	PatientID string `json:"patientId"`
 }
 
 type ViewListPatient struct {
@@ -55,5 +56,17 @@ func (p *ViewPatient) asPatient() Patient {
 		Note:         p.Note,
 		Owner:        p.Owner,
 		OwnerPhone:   p.OwnerPhone,
+	}
+}
+
+func (p *ViewProcedure) asProcedure() Procedure {
+	id, _ := strconv.ParseUint(p.Id, 10, 64)
+	return Procedure{
+		Model: gorm.Model{
+			ID: uint(id),
+		},
+		Type:    p.Type,
+		Date:    p.Date,
+		Details: p.Details,
 	}
 }

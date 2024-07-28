@@ -17,7 +17,7 @@ import { ViewProcedure } from '../types';
   standalone: true,
 })
 export class ProcedureComponent implements OnInit {
-  procedure: ViewProcedure | null = null;
+  procedure: ViewProcedure;
   isEditMode: boolean = false;
   isNewMode: boolean = false;
 
@@ -30,35 +30,53 @@ export class ProcedureComponent implements OnInit {
     private route: ActivatedRoute,
     private location: Location,
     private patientsService: PatientsService
-  ) { 
-    addIcons({"arrow-back": arrowBack})
+  ) {
+    addIcons({ "arrow-back": arrowBack })
+
+    this.procedure = {
+      id: "",
+      type: "",
+      date: "",
+      details: "",
+      patientId: "",
+    };
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(paramMap => {
+    this.route.paramMap.subscribe(async paramMap => {
       const procedureId = paramMap.get('procedureId');
-      const patientId = paramMap.get('patientId');
+      // const patientId = paramMap.get('patientId');
 
-      if (patientId) {
-        this.patientId = patientId;
-        this.isNewMode = true;
-        this.isEditMode = true;
-      } else {
-        this.isEditMode = false;
-      }
+      // if (patientId) {
+        // this.patientId = patientId;
+        // this.isNewMode = true;
+        // this.isEditMode = true;
+      // } else {
+        // this.isEditMode = false;
+      // }
+
       if (procedureId) {
-        const procedure = this.patientsService.getProcedure(procedureId);
-          if (procedure) {
-            this.procedure = { ...procedure };
-            console.log(this.procedure);
-            this.date = this.procedure.date;
-          }
+        const procedure = await this.patientsService.getProcedure(procedureId);
+        if (procedure) {
+          this.procedure = procedure;
+          console.log(this.procedure);
+          this.date = this.procedure.date;
+          this.patientId = procedure.patientId;
         }
+      }
     });
 
     this.route.queryParamMap.subscribe(queryParams => {
-      if(!this.isNewMode) {
+      if (!this.isNewMode) {
         this.isEditMode = queryParams.get('edit') === 'true';
+      }
+    });
+
+    this.route.data.subscribe(data => {
+      console.log(data);
+      this.isNewMode = data["newMode"];
+      if (this.isNewMode) {
+        this.isEditMode = true;
       }
     });
   }
@@ -74,12 +92,14 @@ export class ProcedureComponent implements OnInit {
 
   saveProcedure(): void {
     // TODO: update date
-    if (this.isNewMode) {
-      this.patientsService.addProcedure(this.patientId!, this.procedure!);
-      this.router.navigate(["procedure", this.procedure!.id], { queryParams: { edit: false },  replaceUrl: true });
-    } else if (this.isEditMode) {
-      this.patientsService.updateProcedure(this.procedure!);
-      this.goBack();
-    }
+    this.patientsService.updateProcedure(this.patientId!, this.procedure!).subscribe({
+      next: _ => {
+        if (this.isNewMode) {
+          this.router.navigate(["procedure", this.procedure!.id], { queryParams: { edit: false }, replaceUrl: true });
+        } else if (this.isEditMode) {
+          this.goBack();
+        }
+      }
+    })
   }
 }

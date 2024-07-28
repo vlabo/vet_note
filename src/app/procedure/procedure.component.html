@@ -1,26 +1,25 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ isEditMode ? 'Edit' : 'View' }} Procedure</ion-title>
-    <ion-button slot="end" fill="clear" (click)="enableEditMode()" *ngIf="!isEditMode">Edit</ion-button>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content>
-  <form *ngIf="procedure">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="goBack()">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>{{ isEditMode ? 'Edit' : 'View' }} Procedure</ion-title>
+      <ion-button slot="end" fill="clear" (click)="enableEditMode()" *ngIf="!isEditMode">Edit</ion-button>
+    </ion-toolbar>
+  </ion-header>
+  <form>
     <ion-item>
       <ion-label *ngIf="!isEditMode">{{ procedure.type }}</ion-label>
-      <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" *ngIf="isEditMode">
+      <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" interface="popover" *ngIf="isEditMode">
         <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
       <ion-datetime-button datetime="datetime" [disabled]="!isEditMode"></ion-datetime-button>
     </ion-item>
 
-    <ion-textarea [(ngModel)]="procedure.details" name="details" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
+    <ion-textarea [(ngModel)]="procedure.details" name="details" placeholder="Описание" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
     <ion-label *ngIf="!isEditMode">
       <pre>{{ procedure.details }}</pre>
     </ion-label>

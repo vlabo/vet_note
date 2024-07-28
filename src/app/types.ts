@@ -34,6 +34,7 @@ export interface ViewProcedure {
   type: string;
   date: string;
   details: string;
+  patientId: string;
 }
 export interface ViewListPatient {
   id: string;

@@ -56,24 +56,24 @@ export class EditPatientComponent implements OnInit {
       if (id === null) {
         return;
       }
-      var patient = await this.patientsService.getPatient(id);
-      if (patient) {
-        console.log(patient);
-        this.patient = patient;
-      }
+      this.patientsService.getPatient(id).subscribe({
+        next: patient => {
+          console.log(patient);
+          this.patient = patient;
+        }
+      })
     });
     this.types = this.patientsService.getTypes();
   }
 
   async save() {
     this.patientsService.updatePatient(this.patient!).subscribe({
-      next: _ => {
+      next: patient => {
         if (this.newMode) {
-          this.patientsService.updatePatient(this.patient!);
           this.newMode = false;
-          this.router.navigate(["/patient", this.patient!.id], { replaceUrl: true })
+          this.router.navigate(["/patient", patient.id], { replaceUrl: true })
+          this.patient = patient;
         } else {
-          this.patientsService.updatePatient(this.patient!);
           this.location.back();
         }
       },

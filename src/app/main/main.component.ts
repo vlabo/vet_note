@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnInit, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
 import { IonSearchbar, IonicModule } from '@ionic/angular';
-import { add } from 'ionicons/icons';
+import { add, settingsSharp } from 'ionicons/icons';
 import { addIcons } from "ionicons";
 import { PatientsService } from '../patients.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -42,21 +42,25 @@ export class MainComponent implements OnInit, AfterViewInit {
 
   async ngOnInit() {
     // Initialization.
-    addIcons({ "add": add });
+    addIcons({ "add": add, "settings": settingsSharp });
 
     // TODO: if new patients come from the server this need to be updated. 
-    this.patients = await this.patientsService.getPatientList()
-    this.filteredPatients = this.patients;
-    this.fuse = new Fuse(this.patients, {
-      keys: ['name', 'owner', 'chip_id', "phone"],
-      includeMatches: true,
-    });
+    this.patientsService.getPatientList().subscribe({
+      next: patients => {
+        this.patients = patients;
+        this.filteredPatients = this.patients;
+        this.fuse = new Fuse(this.patients, {
+          keys: ['name', 'owner', 'chip_id', "phone"],
+          includeMatches: true,
+        });
 
-    // the query parameter from the URL and filter the list based on it.
-    this.searchQuery = this.route.snapshot.queryParamMap.get('query');
-    if (this.searchQuery) {
-      this.filterList(this.searchQuery);
-    }
+        // the query parameter from the URL and filter the list based on it.
+        this.searchQuery = this.route.snapshot.queryParamMap.get('query');
+        if (this.searchQuery) {
+          this.filterList(this.searchQuery);
+        }
+      }
+    })
   }
 
   ngAfterViewInit(): void {
@@ -78,7 +82,7 @@ export class MainComponent implements OnInit, AfterViewInit {
     const query = event.target.value;
     this.searchQuery = query;
     if (!query) {
-      this.router.navigate([], {  relativeTo: this.route, replaceUrl: true });
+      this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
       this.filteredPatients = this.patients;
       this.searchResult = [];
     } else {
@@ -88,7 +92,7 @@ export class MainComponent implements OnInit, AfterViewInit {
 
   // filterList calls the filter function of the fuse.js library to filter the patient list.
   filterList(query: string): void {
-    this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true});
+    this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true });
     const result = this.fuse.search(query);
     this.searchResult = result;
     this.filteredPatients = result.map(res => res.item);

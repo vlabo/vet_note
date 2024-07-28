@@ -12,34 +12,16 @@ export class PatientsService {
   private procedures = new Map<string, ViewProcedure>()
   private types: String[] = ["Куче", "Котка", "Птица", "Заек"];
 
+  private Url: string = "http://localhost:8080/v1";
+
   constructor(private http: HttpClient) { }
 
-  public async getPatient(key: string): Promise<ViewPatient | undefined> {
-    try {
-      const response = await fetch('http://localhost:8080/v1/patient/' + key);
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const patient: ViewPatient = await response.json();
-      return patient;
-    } catch (error) {
-      console.error("Failed to fetch patient list:", error);
-      return undefined;
-    }
+  public getPatient(key: string): Observable<ViewPatient> {
+      return this.http.get<ViewPatient>(this.Url + '/patient/' + key);
   }
 
-  public async getProcedure(key: string): Promise<ViewProcedure | undefined> {
-    try {
-      const response = await fetch('http://localhost:8080/v1/procedure/' + key);
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const patient: ViewProcedure = await response.json();
-      return patient;
-    } catch (error) {
-      console.error("Failed to fetch procedure:", error);
-      return undefined;
-    }
+  public getProcedure(key: string): Observable<ViewProcedure> {
+      return this.http.get<ViewProcedure>(this.Url + '/procedure/' + key);
   }
 
   public getProcedures(keys: string[]): ViewProcedure[] {
@@ -55,36 +37,29 @@ export class PatientsService {
     return procedures;
   }
 
-  public async getPatientList(): Promise<ViewListPatient[]> {
-    try {
-      const response = await fetch('http://localhost:8080/v1/patient-list');
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const list: ViewListPatient[] = await response.json();
-      return list;
-    } catch (error) {
-      console.error("Failed to fetch patient list:", error);
-      return []; // Return an empty array in case of error
-    }
+  public getPatientList(): Observable<ViewListPatient[]> {
+      return this.http.get<ViewListPatient[]>(this.Url + '/patient-list');
   }
 
   public addPatient(patient: ViewPatient) {
     this.patients.set(patient.id, patient);
   }
 
-  // public addProcedure(patientId: string, procedure: ViewProcedure) {
-  //   this.procedures.set(procedure.id, procedure);
-  // }
-
   public updatePatient(view: ViewPatient): Observable<ViewPatient> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     return this.http.post<ViewPatient>('http://localhost:8080/v1/patient', view, { headers });
   }
 
+  public deletePatient(id: string) {
+    return this.http.delete('http://localhost:8080/v1/patient/' + id);
+  }
+
   public updateProcedure(patientId: string, procedure: ViewProcedure) {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post<ViewPatient>('http://localhost:8080/v1/procedure/' + patientId, procedure, { headers });
+    return this.http.post<ViewProcedure>('http://localhost:8080/v1/procedure/' + patientId, procedure, { headers });
+  }
+  public deleteProcedure(id: string) {
+    return this.http.delete('http://localhost:8080/v1/procedure/' + id);
   }
 
   public getTypes(): String[] {

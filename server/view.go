@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
+
+	"vet_note/db"
 
 	"gorm.io/gorm"
 )
@@ -39,9 +42,9 @@ type ViewPatient struct {
 	Procedures   []ViewProcedure `json:"procedures"`
 }
 
-func (p *ViewPatient) asPatient() Patient {
+func (p *ViewPatient) asPatient() db.Patient {
 	id, _ := strconv.ParseUint(p.Id, 10, 64)
-	return Patient{
+	return db.Patient{
 		Model: gorm.Model{
 			ID: uint(id),
 		},
@@ -59,14 +62,69 @@ func (p *ViewPatient) asPatient() Patient {
 	}
 }
 
-func (p *ViewProcedure) asProcedure() Procedure {
+func (p *ViewProcedure) asProcedure() db.Procedure {
 	id, _ := strconv.ParseUint(p.Id, 10, 64)
-	return Procedure{
+	return db.Procedure{
 		Model: gorm.Model{
 			ID: uint(id),
 		},
 		Type:    p.Type,
 		Date:    p.Date,
 		Details: p.Details,
+	}
+}
+
+func procedureToViewProcedure(p db.Procedure) ViewProcedure {
+	return ViewProcedure{
+		Id:        strconv.FormatUint(uint64(p.ID), 10),
+		Type:      p.Type,
+		Date:      p.Date,
+		Details:   p.Details,
+		PatientID: strconv.FormatUint(uint64(p.PatientID), 10),
+	}
+}
+
+func patientToListPatient(p db.Patient) ViewListPatient {
+	return ViewListPatient{
+		Id:     strconv.FormatUint(uint64(p.ID), 10),
+		Type:   p.Type,
+		Name:   p.Name,
+		ChipId: p.ChipId,
+		Owner:  p.Owner,
+		Phone:  p.OwnerPhone,
+	}
+}
+
+func patientToViewPatient(p db.Patient) ViewPatient {
+	vp := ViewPatient{
+		Id:           strconv.FormatUint(uint64(p.ID), 10),
+		Type:         p.Type,
+		Name:         p.Name,
+		Gender:       p.Gender,
+		BirthDate:    p.BirthDate,
+		ChipId:       p.ChipId,
+		Weight:       p.Weight,
+		Castrated:    p.Castrated,
+		LastModified: p.LastModified,
+		Note:         p.Note,
+		Owner:        p.Owner,
+		OwnerPhone:   p.OwnerPhone,
+		Procedures:   []ViewProcedure{},
+	}
+
+	for _, proc := range p.Procedures {
+		vp.Procedures = append(vp.Procedures, procedureToViewProcedure(proc))
+	}
+
+	return vp
+}
+
+type ViewError struct {
+	Error string `json:"error"`
+}
+
+func FmtError(format string, args ...any) ViewError {
+	return ViewError{
+		Error: fmt.Sprintf(format, args...),
 	}
 }

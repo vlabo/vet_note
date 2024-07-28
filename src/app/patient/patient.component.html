@@ -7,6 +7,8 @@
         </ion-button>
       </ion-buttons>
       <ion-title>{{ patient.name }} - {{ patient.type }}</ion-title>
+      <ion-button slot="end" fill="clear" color="danger" (click)="presentDeleteConfirm()">Изтрий</ion-button>
+      <ion-button slot="end" fill="clear" (click)="openEdit()">Редактирай</ion-button>
     </ion-toolbar>
   </ion-header>
 
@@ -19,11 +21,6 @@
       <ion-col>
         <fa-icon [icon]="calendar" class="ion-margin-end"></fa-icon>
         <ion-label>{{ getAge() }}</ion-label>
-      </ion-col>
-      <ion-col size="2" class="ion-text-center ion-align-items-center">
-        <ion-button fill="clear" class="edit-button" (click)="openEdit()">
-          <ion-icon name="create" class="edit-button"></ion-icon>
-        </ion-button>
       </ion-col>
     </ion-row>
     <ion-row class="ion-align-items-center">
@@ -39,7 +36,6 @@
         <fa-icon [icon]="weight" class="ion-margin-end"></fa-icon>
         <ion-label>{{patient.weight}}кг</ion-label>
       </ion-col>
-      <ion-col size="2"></ion-col>
     </ion-row>
     <ion-row class="ion-align-items-center">
       <ion-col>
@@ -52,7 +48,6 @@
         <fa-icon [icon]="microchip" class="ion-margin-end"></fa-icon>
         <ion-label>{{ patient.chipId }}</ion-label>
       </ion-col>
-      <ion-col size="2"></ion-col>
     </ion-row>
   </ion-grid>
   <ion-grid>
@@ -65,7 +60,6 @@
         <fa-icon [icon]="phone" class="ion-margin-end"></fa-icon>
         <ion-label>{{ patient.ownerPhone }}</ion-label>
       </ion-col>
-      <ion-col size="2"></ion-col>
     </ion-row>
   </ion-grid>
   <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionBlur)="updatePatient()" placeholder="Бележка" autoGrow="true"></ion-textarea>

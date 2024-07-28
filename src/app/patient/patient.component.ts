@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientsService } from '../patients.service';
 import { CommonModule } from '@angular/common';
-import { IonModal, IonicModule } from '@ionic/angular';
+import { AlertController, IonModal, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -49,6 +49,7 @@ export class PatientComponent implements OnInit, OnDestroy {
     private router: Router,
     private location: Location,
     private patientService: PatientsService,
+    private alertController: AlertController,
   ) {
     addIcons({
       "add": add,
@@ -70,9 +71,12 @@ export class PatientComponent implements OnInit, OnDestroy {
       if (id === null) {
         return;
       }
-      this.patient = await this.patientService.getPatient(id);
-      console.log(this.patient);
-      // this.procedures = this.patientService.getProcedures(this.patient!.Procedures);
+      this.patientService.getPatient(id).subscribe({
+        next: patient => {
+          this.patient = patient;
+          console.log(this.patient);
+        }
+      })
     });
   }
 
@@ -133,4 +137,31 @@ export class PatientComponent implements OnInit, OnDestroy {
     }
     return result;
   };
+
+  async presentDeleteConfirm() {
+    const alert = await this.alertController.create({
+      header: 'Потвърди изтриване',
+      message: 'Сигурни ли сте, че искате да изтриете този запис?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {}
+        },
+        {
+          text: 'Delete',
+          handler: () => {
+            this.patientService.deletePatient(this.patient!.id).subscribe({
+              next: _ => {
+                this.goBack();
+              }
+            })
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
 }

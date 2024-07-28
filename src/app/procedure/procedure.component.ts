@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule } from '@ionic/angular';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PatientsService } from '../patients.service';
@@ -29,7 +29,8 @@ export class ProcedureComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private location: Location,
-    private patientsService: PatientsService
+    private patientsService: PatientsService,
+    private alertController: AlertController,
   ) {
     addIcons({ "arrow-back": arrowBack })
 
@@ -45,24 +46,17 @@ export class ProcedureComponent implements OnInit {
   ngOnInit(): void {
     this.route.paramMap.subscribe(async paramMap => {
       const procedureId = paramMap.get('procedureId');
-      // const patientId = paramMap.get('patientId');
-
-      // if (patientId) {
-        // this.patientId = patientId;
-        // this.isNewMode = true;
-        // this.isEditMode = true;
-      // } else {
-        // this.isEditMode = false;
-      // }
-
       if (procedureId) {
-        const procedure = await this.patientsService.getProcedure(procedureId);
-        if (procedure) {
-          this.procedure = procedure;
-          console.log(this.procedure);
-          this.date = this.procedure.date;
-          this.patientId = procedure.patientId;
-        }
+        this.patientsService.getProcedure(procedureId).subscribe({
+          next: procedure => {
+            this.procedure = procedure;
+            console.log(this.procedure);
+            this.date = this.procedure.date;
+            this.patientId = procedure.patientId;
+          }
+        })
+      } else {
+        this.patientId = paramMap.get('patientId');
       }
     });
 
@@ -91,9 +85,9 @@ export class ProcedureComponent implements OnInit {
   }
 
   saveProcedure(): void {
-    // TODO: update date
     this.patientsService.updateProcedure(this.patientId!, this.procedure!).subscribe({
-      next: _ => {
+      next: procedure => {
+        this.procedure = procedure;
         if (this.isNewMode) {
           this.router.navigate(["procedure", this.procedure!.id], { queryParams: { edit: false }, replaceUrl: true });
         } else if (this.isEditMode) {
@@ -101,5 +95,32 @@ export class ProcedureComponent implements OnInit {
         }
       }
     })
+  }
+
+  async presentDeleteConfirm() {
+    const alert = await this.alertController.create({
+      header: 'Потвърди изтриване',
+      message: 'Сигурни ли сте, че искате да изтриете този запис?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => { }
+        },
+        {
+          text: 'Delete',
+          handler: () => {
+            this.patientsService.deleteProcedure(this.procedure.id).subscribe({
+              next: _ => {
+                this.goBack();
+              }
+            })
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }

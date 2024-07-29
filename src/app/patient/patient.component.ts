@@ -144,16 +144,17 @@ export class PatientComponent implements OnInit, OnDestroy {
       message: 'Сигурни ли сте, че искате да изтриете този запис?',
       buttons: [
         {
-          text: 'Cancel',
+          text: 'Отказ',
           role: 'cancel',
           cssClass: 'secondary',
           handler: () => {}
         },
         {
-          text: 'Delete',
+          text: 'Изтрий',
           handler: () => {
             this.patientService.deletePatient(this.patient!.id).subscribe({
               next: _ => {
+                this.patient = undefined;
                 this.goBack();
               }
             })

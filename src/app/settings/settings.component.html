@@ -1,0 +1,73 @@
+<ion-content>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="goBack()">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>Настройки</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-item-group>
+
+      <ion-item-divider>
+        <ion-label> Тип животно </ion-label>
+      </ion-item-divider>
+      <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
+        <ion-item>
+          <ion-label> Куче </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+
+        <ion-item>
+          <ion-label> Котка </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+
+        <ion-item>
+          <ion-label> Улична Котка </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+
+        <ion-item>
+          <ion-label> Морско Свинче </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+
+        <ion-item>
+          <ion-label> Крава </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+      </ion-reorder-group>
+      <ion-button fill="clear" expand="full">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-item-group>
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label> Тип процедура </ion-label>
+      </ion-item-divider>
+      <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
+        <ion-item>
+          <ion-label> Преглед </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+        <ion-item>
+          <ion-label> Операция </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+        <ion-item>
+          <ion-label> Кръвна Картина </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+      </ion-reorder-group>
+      <ion-button fill="clear" expand="full">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-item-group>
+
+  </ion-list>
+</ion-content>

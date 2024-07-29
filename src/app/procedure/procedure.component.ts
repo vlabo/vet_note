@@ -103,13 +103,13 @@ export class ProcedureComponent implements OnInit {
       message: 'Сигурни ли сте, че искате да изтриете този запис?',
       buttons: [
         {
-          text: 'Cancel',
+          text: 'Отказ',
           role: 'cancel',
           cssClass: 'secondary',
           handler: () => { }
         },
         {
-          text: 'Delete',
+          text: 'Изтрий',
           handler: () => {
             this.patientsService.deleteProcedure(this.procedure.id).subscribe({
               next: _ => {

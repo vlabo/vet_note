@@ -77,6 +77,10 @@ export class MainComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/patient/new']);
   }
 
+  openSettings(): void {
+    this.router.navigate(['/settings']);
+  }
+
   // onSearch is called when the search input changes. It filters the list of patients based on the search query.
   onSearch(event: any): void {
     const query = event.target.value;

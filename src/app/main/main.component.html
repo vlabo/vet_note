@@ -1,7 +1,7 @@
 <ion-content>
   <ion-item>
     <ion-searchbar #searchbar name="search" (ionInput)="onSearch($event)"></ion-searchbar>
-    <ion-button fill="clear" color="dark">
+    <ion-button fill="clear" color="dark" (click)="openSettings()">
       <ion-icon name="settings"></ion-icon>
     </ion-button>
   </ion-item>

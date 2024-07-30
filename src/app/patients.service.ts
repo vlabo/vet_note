@@ -8,22 +8,18 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class PatientsService {
-  private types: String[] = ["Куче", "Котка", "Птица", "Заек"];
-
-  private Url: string = "http://localhost:8080/v1";
+  private Url: string = "http://192.168.88.11:8080/v1";
 
   constructor(private http: HttpClient) { }
 
-  public getPatient(key: string): Observable<ViewPatient> {
-      return this.http.get<ViewPatient>(`${this.Url}/patient/` + key);
-  }
-
-  public getProcedure(key: string): Observable<ViewProcedure> {
-      return this.http.get<ViewProcedure>(`${this.Url}/procedure/` + key);
-  }
-
+  // Main list
   public getPatientList(): Observable<ViewListPatient[]> {
       return this.http.get<ViewListPatient[]>(`${this.Url}/patient-list`);
+  }
+
+  // Patient
+  public getPatient(key: string): Observable<ViewPatient> {
+      return this.http.get<ViewPatient>(`${this.Url}/patient/` + key);
   }
 
   public updatePatient(view: ViewPatient): Observable<ViewPatient> {
@@ -35,15 +31,34 @@ export class PatientsService {
     return this.http.delete(`${this.Url}/patient/${id}`);
   }
 
+  // Procedure
+  public getProcedure(key: string): Observable<ViewProcedure> {
+      return this.http.get<ViewProcedure>(`${this.Url}/procedure/` + key);
+  }
+
   public updateProcedure(patientId: string, procedure: ViewProcedure) {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     return this.http.post<ViewProcedure>(`${this.Url}/procedure/` + patientId, procedure, { headers });
   }
+
   public deleteProcedure(id: string) {
     return this.http.delete(`${this.Url}/procedure/` + id);
   }
 
-  public getTypes(): String[] {
-    return this.types;
+  // Settings
+  public getPatientTypes(): Observable<string[]> {
+      return this.http.get<string[]>(`${this.Url}/patient-types`);
+  }
+
+  public updatePatientTypes(types: string[]): Observable<string[]> {
+      return this.http.post<string[]>(`${this.Url}/patient-types`, types);
+  }
+
+  public getProcedureTypes(): Observable<string[]> {
+      return this.http.get<string[]>(`${this.Url}/procedure-types`);
+  }
+
+  public updateProcedureTypes(types: string[]): Observable<string[]> {
+      return this.http.post<string[]>(`${this.Url}/procedure-types`, types);
   }
 }

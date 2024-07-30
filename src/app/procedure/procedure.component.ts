@@ -21,7 +21,7 @@ export class ProcedureComponent implements OnInit {
   isEditMode: boolean = false;
   isNewMode: boolean = false;
 
-  procedureTypes: string[] = ['Examination', 'Surgery', 'Vaccine', 'Castration', 'Blood Test'];
+  procedureTypes: string[] = [];
   patientId: string | null = null;
   date: string = "";
 
@@ -44,6 +44,15 @@ export class ProcedureComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
+    this.patientsService.getProcedureTypes().subscribe({
+      next: types => {
+        if(types) {
+          this.procedureTypes = types;
+        }
+      }
+    });
+    
     this.route.paramMap.subscribe(async paramMap => {
       const procedureId = paramMap.get('procedureId');
       if (procedureId) {

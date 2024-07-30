@@ -33,6 +33,12 @@ type Patient struct {
 	Procedures   []Procedure `gorm:"foreignKey:PatientID"`
 }
 
+type Settings struct {
+	gorm.Model
+	PatientTypes   string
+	ProcedureTypes string
+}
+
 func InitializeDB(path string) error {
 	var err error
 	connection, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
@@ -41,7 +47,7 @@ func InitializeDB(path string) error {
 	}
 
 	// Migrate the schema
-	err = connection.AutoMigrate(&Patient{}, &Procedure{})
+	err = connection.AutoMigrate(&Patient{}, &Procedure{}, &Settings{})
 	if err != nil {
 		return fmt.Errorf("failed to migrate db: %s", err)
 	}
@@ -105,4 +111,38 @@ func DeleteProcedure(procedureId string) (err error) {
 		err = fmt.Errorf("failed to delete procedure: %s", err)
 	}
 	return
+}
+
+func GetPatientTypes() (types string, err error) {
+	var settings Settings
+	result := connection.First(&settings)
+	if result.Error != nil {
+		err = fmt.Errorf("failed to get patient types: %s", result.Error)
+	}
+	types = settings.PatientTypes
+	return
+}
+
+func UpdatePatientTypes(types string) {
+	var settings Settings
+	connection.First(&settings)
+	settings.PatientTypes = types
+	connection.Save(&settings)
+}
+
+func GetProcedureTypes() (types string, err error) {
+	var settings Settings
+	result := connection.First(&settings)
+	if result.Error != nil {
+		err = fmt.Errorf("failed to get procedure types: %s", result.Error)
+	}
+	types = settings.ProcedureTypes
+	return
+}
+
+func UpdateProcedureTypes(types string) {
+	var settings Settings
+	connection.First(&settings)
+	settings.ProcedureTypes = types
+	connection.Save(&settings)
 }

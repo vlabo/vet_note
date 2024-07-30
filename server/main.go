@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
+	"vet_note/db"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"vet_note/db"
 )
 
 func getPatientList(c echo.Context) error {
@@ -102,6 +104,40 @@ func deleteProcedure(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+func getPatientTypes(c echo.Context) error {
+	types, err := db.GetPatientTypes()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
+	}
+	return c.String(http.StatusOK, types)
+}
+
+func updatePatientTypes(c echo.Context) error {
+	body, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to update settings: %s", err))
+	}
+	db.UpdatePatientTypes(string(body))
+	return c.NoContent(http.StatusOK)
+}
+
+func getProcedureTypes(c echo.Context) error {
+	types, err := db.GetProcedureTypes()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
+	}
+	return c.String(http.StatusOK, types)
+}
+
+func updateProcedureTypes(c echo.Context) error {
+	body, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to update settings: %s", err))
+	}
+	db.UpdateProcedureTypes(string(body))
+	return c.NoContent(http.StatusOK)
+}
+
 func main() {
 	err := db.InitializeDB("test.db")
 	if err != nil {
@@ -119,5 +155,9 @@ func main() {
 	e.GET("/v1/procedure/:procedureId", getProcedure)
 	e.POST("/v1/procedure/:patientId", updateProcedure)
 	e.DELETE("/v1/procedure/:procedureId", deleteProcedure)
-	e.Logger.Fatal(e.Start(":8080"))
+	e.GET("/v1/patient-types", getPatientTypes)
+	e.POST("/v1/patient-types", updatePatientTypes)
+	e.GET("/v1/procedure-types", getProcedureTypes)
+	e.POST("/v1/procedure-types", updateProcedureTypes)
+	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }

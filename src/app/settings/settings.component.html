@@ -9,40 +9,37 @@
       <ion-title>Настройки</ion-title>
     </ion-toolbar>
   </ion-header>
-
   <ion-list>
     <ion-item-group>
-
       <ion-item-divider>
         <ion-label> Тип животно </ion-label>
       </ion-item-divider>
-      <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
-        <ion-item>
-          <ion-label> Куче </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
+      <ion-reorder-group disabled="false" (ionItemReorder)="handleReorderPatients($any($event))">
 
-        <ion-item>
-          <ion-label> Котка </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
+        <ion-item-sliding *ngFor="let type of patientTypes; let i = index">
+          <ion-item>
+            <ion-label> {{ type }} </ion-label>
+            <ion-reorder slot="end"></ion-reorder>
+          </ion-item>
 
-        <ion-item>
-          <ion-label> Улична Котка </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
-
-        <ion-item>
-          <ion-label> Морско Свинче </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
-
-        <ion-item>
-          <ion-label> Крава </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deletePatientType(i)">
+              <ion-icon slot="start" name="trash"></ion-icon>
+              Изтрий
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
       </ion-reorder-group>
-      <ion-button fill="clear" expand="full">
+      <ion-item *ngIf="addingNewPatient">
+        <ion-input [(ngModel)]="newPatient" fill="outline"></ion-input>
+        <ion-button color="danger" (click)="cancelAddPatient()">
+          <ion-icon slot="icon-only" name="close"></ion-icon>
+        </ion-button>
+        <ion-button color="success" (click)="pushNewPatient()">
+          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-button fill="clear" expand="full" (click)="addingNewPatient = true">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </ion-item-group>
@@ -50,24 +47,24 @@
       <ion-item-divider>
         <ion-label> Тип процедура </ion-label>
       </ion-item-divider>
-      <ion-reorder-group [disabled]="false" (ionItemReorder)="handleReorder($any($event))">
-        <ion-item>
-          <ion-label> Преглед </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
-        <ion-item>
-          <ion-label> Операция </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
-        <ion-item>
-          <ion-label> Кръвна Картина </ion-label>
+      <ion-reorder-group disabled="false" (ionItemReorder)="handleReorderProcedures($any($event))">
+        <ion-item *ngFor="let type of procedureTypes">
+          <ion-label> {{ type }} </ion-label>
           <ion-reorder slot="end"></ion-reorder>
         </ion-item>
       </ion-reorder-group>
-      <ion-button fill="clear" expand="full">
+      <ion-item *ngIf="addingNewProcedure">
+        <ion-input [(ngModel)]="newProcedure" fill="outline"></ion-input>
+        <ion-button color="danger" (click)="cancelAddProcedure()">
+          <ion-icon slot="icon-only" name="close"></ion-icon>
+        </ion-button>
+        <ion-button color="success" (click)="pushNewProcedure()">
+          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-button fill="clear" expand="full" (click)="addingNewProcedure = true">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </ion-item-group>
-
   </ion-list>
 </ion-content>

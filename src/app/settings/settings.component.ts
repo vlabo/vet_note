@@ -4,38 +4,104 @@ import { IonicModule, ItemReorderEventDetail } from '@ionic/angular';
 import { Location } from '@angular/common';
 
 import { addIcons } from "ionicons";
-import { arrowBack, add } from 'ionicons/icons';
+import { arrowBack, add, close, checkmark, trash } from 'ionicons/icons';
+import { PatientsService } from '../patients.service';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class SettingsComponent implements OnInit {
 
-  constructor(private location: Location) { 
+  patientTypes: string[] = [];
+  procedureTypes: string[] = [];
+
+
+  addingNewPatient: boolean = false;
+  newPatient: string = "";
+  addingNewProcedure: boolean = false;
+  newProcedure: string = "";
+
+  constructor(private location: Location, private patientsService: PatientsService) { 
     addIcons({"add": add});
   }
 
   ngOnInit() {
     addIcons({
-      "arrow-back": arrowBack
-    })
+      "arrow-back": arrowBack, "close": close, "checkmark": checkmark, "trash": trash
+    });
+
+    this.patientsService.getPatientTypes().subscribe({
+      next: types => {
+        if(types) {
+          this.patientTypes = types;
+        }
+      }
+    });
+
+    this.patientsService.getProcedureTypes().subscribe({
+      next: types => {
+        if(types) {
+          this.procedureTypes = types;
+        }
+      }
+    });
   }
 
-  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-    // The `from` and `to` properties contain the index of the item
-    // when the drag started and ended, respectively
-    console.log('Dragged from index', ev.detail.from, 'to', ev.detail.to);
+  handleReorderPatients(ev: CustomEvent<ItemReorderEventDetail>) {
+    var toValue = this.patientTypes[ev.detail.to]
+    this.patientTypes[ev.detail.to] = this.patientTypes[ev.detail.from];
+    this.patientTypes[ev.detail.from] = toValue;
+    this.patientsService.updatePatientTypes(this.patientTypes).subscribe({});
+    ev.detail.complete();
+  }
 
-    // Finish the reorder and position the item in the DOM based on
-    // where the gesture ended. This method can also be called directly
-    // by the reorder group
+  handleReorderProcedures(ev: CustomEvent<ItemReorderEventDetail>) {
+    var toValue = this.procedureTypes[ev.detail.to]
+    this.procedureTypes[ev.detail.to] = this.procedureTypes[ev.detail.from];
+    this.procedureTypes[ev.detail.from] = toValue;
+    this.patientsService.updateProcedureTypes(this.procedureTypes).subscribe({});
     ev.detail.complete();
   }
 
   goBack() {
     this.location.back();
+  }
+
+  cancelAddPatient() {
+    this.addingNewPatient = false;
+    this.newPatient = "";
+  }
+
+  cancelAddProcedure() {
+    this.addingNewProcedure = false;
+    this.newProcedure = "";
+  }
+
+  pushNewPatient() {
+    this.patientTypes.push(this.newPatient);
+    this.patientsService.updatePatientTypes(this.patientTypes).subscribe({});
+    this.addingNewPatient = false;
+    this.newPatient = "";
+  }
+
+  pushNewProcedure() {
+    this.procedureTypes.push(this.newProcedure);
+    this.patientsService.updateProcedureTypes(this.procedureTypes).subscribe({});
+    this.addingNewProcedure = false;
+    this.newProcedure = "";
+  }
+
+  deletePatientType(index: number) {
+    this.patientTypes.splice(index, 1);
+    this.patientsService.updatePatientTypes(this.patientTypes).subscribe({});
+  }
+
+  deleteProcedureType(index: number) {
+    this.procedureTypes.splice(index, 1);
+    this.patientsService.updateProcedureTypes(this.procedureTypes).subscribe({});
   }
 }

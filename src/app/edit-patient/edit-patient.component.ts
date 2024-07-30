@@ -63,7 +63,11 @@ export class EditPatientComponent implements OnInit {
         }
       })
     });
-    this.types = this.patientsService.getTypes();
+    this.patientsService.getPatientTypes().subscribe({
+      next: types => {
+        this.types = types;
+      }
+    });
   }
 
   async save() {

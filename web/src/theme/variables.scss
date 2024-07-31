@@ -1,0 +1,24 @@
+// For information on how to create your own theme, please see:
+// http://ionicframework.com/docs/theming/
+$primary: #3880ff;
+$secondary: #0cd1e8;
+$tertiary: #7044ff;
+$success: #10dc60;
+$warning: #ffce00;
+$danger: #f04141;
+$dark: #222428;
+$medium: #989aa2;
+$light: #f4f5f8;
+
+// Ionic Variables
+@import "~@ionic/angular/css/core.css";
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import "~@ionic/angular/css/display.css";
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+@import "~@ionic/angular/css/palettes/dark.system.css";

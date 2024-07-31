@@ -139,7 +139,7 @@ func updateProcedureTypes(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// // go:embed dist/vet_note_ng/browser/*
+// // go:embed web/www/*
 // var embeddedFiles embed.FS
 
 func main() {
@@ -170,19 +170,13 @@ func main() {
 	e.GET("/v1/procedure-types", getProcedureTypes)
 	e.POST("/v1/procedure-types", updateProcedureTypes)
 
-	// e.Static("/", "../dist/vet_note_ng")
+	e.Static("/", "web/www")
 	// Fallback route to serve index.html for SPA
 	// e.GET("/*", func(c echo.Context) error {
-	// 	return c.File("dist/vet_note_ng/browser/index.html")
+	// return c.File("dist/vet_note_ng/browser/index.html")
 	// })
-	// subFS, err := fs.Sub(embeddedFiles, "dist/vet_note_ng/browser")
+	// subFS, _ := fs.Sub(embeddedFiles, "web/www")
+	// e.GET("/", echo.WrapHandler(http.FileServer(http.FS(embeddedFiles))))
 
-	// if err != nil {
-	// 	e.Logger.Fatal(err)
-	// }
-	// // Serve static files from the "dist" directory
-	// e.GET("/*", echo.WrapHandler(http.FileServer(http.FS(subFS))))
-
-	// Catch-all route to serve the index.html file for Angular routing
 	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }

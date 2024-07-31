@@ -110,19 +110,24 @@ export class PatientComponent implements OnInit, OnDestroy {
     }
   }
 
-  formatBirthDate(data: Date): string {
-    return formatDate(data, "dd.MM.yyyy", "en-US");
-  }
-
   updatePatient() {
     if (this.patient) {
       this.patientService.updatePatient(this.patient).subscribe({});
     }
   }
 
+  isValidDate(dateString: string): boolean {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+  }
+
   getAge(): string {
-    let now = new Date()
-    let date = new Date(this.patient!.birthDate)
+    let date = new Date(this.patient!.birthDate);
+    // Check if the birth date is valid
+    if (isNaN(date.getTime())) {
+      return "-";
+    }
+    let now = new Date();
     let years = now.getFullYear() - date.getFullYear();
     let months = now.getMonth() - date.getMonth();
 
@@ -165,4 +170,5 @@ export class PatientComponent implements OnInit, OnDestroy {
 
     await alert.present();
   }
+
 }

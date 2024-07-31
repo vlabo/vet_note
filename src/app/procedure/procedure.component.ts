@@ -37,7 +37,7 @@ export class ProcedureComponent implements OnInit {
     this.procedure = {
       id: "",
       type: "",
-      date: "",
+      date: new Date().toISOString(),
       details: "",
       patientId: "",
     };

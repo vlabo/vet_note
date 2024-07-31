@@ -31,7 +31,7 @@ export class EditPatientComponent implements OnInit {
       type: "",
       name: "",
       gender: 'unknown',
-      birthDate: new Date().toISOString(),
+      birthDate: "-", 
       chipId: "",
       weight: 0 /* float64 */,
       castrated: false,

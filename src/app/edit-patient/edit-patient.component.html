@@ -34,9 +34,10 @@
     <ion-item>
       <ion-toggle position="stacked" [(ngModel)]="patient!.castrated">Кастриранo</ion-toggle>
     </ion-item>
-    <ion-item>
+    <ion-item id="datetime" button>
       <ion-label>Дата на раждане</ion-label>
-      <ion-datetime-button datetime="datetime"></ion-datetime-button>
+      <ion-label>{{ patient.birthDate | date }}</ion-label>
+      <!-- <ion-datetime-button datetime="datetime"></ion-datetime-button> -->
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Име на собственик</ion-label>

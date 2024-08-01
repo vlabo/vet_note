@@ -1,18 +1,14 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { IonicModule, ItemReorderEventDetail } from '@ionic/angular';
+import { ItemReorderEventDetail } from '@ionic/angular';
 import { Location } from '@angular/common';
 
 import { addIcons } from "ionicons";
 import { arrowBack, add, close, checkmark, trash } from 'ionicons/icons';
 import { PatientsService } from '../patients.service';
-import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class SettingsComponent implements OnInit {
 

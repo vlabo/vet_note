@@ -1,8 +1,10 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"strconv"
@@ -139,8 +141,8 @@ func updateProcedureTypes(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// // go:embed web/www/*
-// var embeddedFiles embed.FS
+//go:embed web/www/*
+var embeddedFiles embed.FS
 
 func main() {
 	args := os.Args
@@ -157,7 +159,6 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Use(middleware.CORS())
 	e.GET("/v1/patient-list", getPatientList)
 	e.GET("/v1/patient/:patientId", getPatient)
 	e.POST("/v1/patient", updatePatient)
@@ -170,13 +171,12 @@ func main() {
 	e.GET("/v1/procedure-types", getProcedureTypes)
 	e.POST("/v1/procedure-types", updateProcedureTypes)
 
-	e.Static("/", "web/www")
-	// Fallback route to serve index.html for SPA
-	// e.GET("/*", func(c echo.Context) error {
-	// return c.File("dist/vet_note_ng/browser/index.html")
-	// })
-	// subFS, _ := fs.Sub(embeddedFiles, "web/www")
-	// e.GET("/", echo.WrapHandler(http.FileServer(http.FS(embeddedFiles))))
+	subFS, err := fs.Sub(embeddedFiles, "web/www")
+	if err != nil {
+		fmt.Printf("%s", err)
+		panic("failed to initialize www")
+	}
+	e.GET("/*", echo.WrapHandler(http.FileServer(http.FS(subFS))))
 
-	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
+	e.Logger.Fatal(e.Start("0.0.0.0:8000"))
 }

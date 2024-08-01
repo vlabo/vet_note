@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, IonicModule } from '@ionic/angular';
-import { CommonModule, Location } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { AlertController } from '@ionic/angular';
+import * as common from '@angular/common';
 import { PatientsService } from '../patients.service';
 
 import { addIcons } from "ionicons";
@@ -13,8 +12,6 @@ import { ViewProcedure } from '../types';
   selector: 'app-procedure',
   templateUrl: './procedure.component.html',
   styleUrls: ['./procedure.component.scss'],
-  imports: [IonicModule, CommonModule, FormsModule],
-  standalone: true,
 })
 export class ProcedureComponent implements OnInit {
   procedure: ViewProcedure;
@@ -28,7 +25,7 @@ export class ProcedureComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private location: Location,
+    private location: common.Location,
     private patientsService: PatientsService,
     private alertController: AlertController,
   ) {

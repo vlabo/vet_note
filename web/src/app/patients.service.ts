@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-import { ViewListPatient, ViewPatient, ViewProcedure } from './types';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ViewListPatient, ViewPatient, ViewProcedure } from 'src/app/types';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class PatientsService {
-  private Url: string = "http://localhost:8080/v1";
+  private Url: string = "/v1";
 
   constructor(private http: HttpClient) { }
 

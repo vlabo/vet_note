@@ -1,8 +1,4 @@
-
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,8 +8,6 @@ import { ViewPatient } from '../types';
   selector: 'app-edit-patient',
   templateUrl: './edit-patient.component.html',
   styleUrls: ['./edit-patient.component.scss'],
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule]
 })
 export class EditPatientComponent implements OnInit {
   patient: ViewPatient;

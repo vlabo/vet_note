@@ -1,25 +1,19 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientsService } from '../patients.service';
-import { CommonModule } from '@angular/common';
-import { AlertController, IonModal, IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { AlertController, IonModal } from '@ionic/angular';
 
 import { faCakeCandles, faUser, faCalendarDays, faMarsAndVenus, faMicrochip, faMars, faVenus, faPhone, faWeightHanging, faCheck, faX } from '@fortawesome/free-solid-svg-icons';
 
 import { add, create, checkmark, close, arrowBack, chevronForward, paw, person, calendar, heartHalf } from 'ionicons/icons';
 import { addIcons } from "ionicons";
 import { Location } from '@angular/common';
-import { formatDate } from '@angular/common';
 import { ViewPatient, ViewProcedure } from '../types';
 
 @Component({
   selector: 'app-patient',
   templateUrl: './patient.component.html',
   styleUrls: ['./patient.component.scss'],
-  imports: [IonicModule, CommonModule, FormsModule, FontAwesomeModule],
-  standalone: true,
 })
 export class PatientComponent implements OnInit, OnDestroy {
 

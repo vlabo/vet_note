@@ -1,6 +1,6 @@
 packages:
   - path: "vet_note"
-    output_path: "../src/app/types.ts"
+    output_path: "web/src/app/types.ts"
     type_mappings:
       time.Time: "string /* RFC3339 */"
       null.String: "null | string"

@@ -1,30 +1,28 @@
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnInit, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
-// import { IonSearchbar, IonicModule } from '@ionic/angular';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { add, settingsSharp } from 'ionicons/icons';
-import { addIcons } from "ionicons";
-import { PatientsService } from '../patients.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import Fuse, { FuseResult } from 'fuse.js';
 import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ViewListPatient } from '../types';
-import { IonButton, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonRow, IonSearchbar, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { IonSearchbar } from '@ionic/angular';
+import Fuse, { FuseResult } from 'fuse.js';
+import { ViewListPatient } from 'src/app/types';
+import { PatientsService } from '../patients.service';
+import { addIcons } from 'ionicons';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-main',
   templateUrl: './main.component.html',
-  standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonLabel, IonSearchbar, IonCol, IonRow, IonGrid, IonIcon, IonItem, IonFabButton, IonFab, IonButton, CommonModule, FontAwesomeModule],
   styleUrls: ['./main.component.scss'],
-  encapsulation: ViewEncapsulation.None
 })
-export class MainComponent implements OnInit, AfterViewInit {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // Icons
   microchip = faMicrochip;
   user = faUser;
   minus = faMinus;
   phone = faPhone;
+
+
+  private routerSubscription: Subscription | null = null;
 
   // searchbar reference used for filtering.
   @ViewChild('searchbar', { static: false }) searchbar!: IonSearchbar;
@@ -45,6 +43,22 @@ export class MainComponent implements OnInit, AfterViewInit {
     // Initialization.
     addIcons({ "add": add, "settings": settingsSharp });
 
+    console.log("Init")
+    this.loadPatientList();
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        this.loadPatientList();
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+  }
+
+  loadPatientList() {
     // TODO: if new patients come from the server this need to be updated. 
     this.patientsService.getPatientList().subscribe({
       next: patients => {
@@ -61,7 +75,7 @@ export class MainComponent implements OnInit, AfterViewInit {
           this.filterList(this.searchQuery);
         }
       }
-    })
+    });
   }
 
   ngAfterViewInit(): void {

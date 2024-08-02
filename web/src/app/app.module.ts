@@ -14,9 +14,10 @@ import { FormsModule } from '@angular/forms';
 import { PatientComponent } from './patient/patient.component';
 import { EditPatientComponent } from './edit-patient/edit-patient.component';
 import { ProcedureComponent } from './procedure/procedure.component';
+import { DatePickerModalComponent } from './date-picker-modal/date-picker-modal.component';
 
 @NgModule({
-  declarations: [AppComponent, MainComponent, SettingsComponent, PatientComponent, EditPatientComponent, ProcedureComponent],
+  declarations: [AppComponent, MainComponent, SettingsComponent, PatientComponent, EditPatientComponent, ProcedureComponent, DatePickerModalComponent],
   imports: [BrowserModule, IonicModule.forRoot(), FormsModule, AppRoutingModule, FontAwesomeModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient(withInterceptorsFromDi())],
   bootstrap: [AppComponent],

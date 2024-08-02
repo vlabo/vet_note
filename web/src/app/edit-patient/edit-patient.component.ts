@@ -3,6 +3,8 @@ import { PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewPatient } from '../types';
+import { DatePickerModalComponent } from '../date-picker-modal/date-picker-modal.component';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-edit-patient',
@@ -19,6 +21,7 @@ export class EditPatientComponent implements OnInit {
     private location: Location,
     private route: ActivatedRoute,
     private router: Router,
+    private modalController: ModalController,
   ) {
     this.patient = {
       id: "",
@@ -90,5 +93,4 @@ export class EditPatientComponent implements OnInit {
     const date = new Date(dateString);
     return !isNaN(date.getTime());
   }
-
 }

@@ -41,7 +41,7 @@ type Settings struct {
 
 func InitializeDB(path string) error {
 	var err error
-	connection, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	connection, err = gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %s", err)
 	}

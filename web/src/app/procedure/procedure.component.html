@@ -17,7 +17,7 @@
       <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" interface="popover" *ngIf="isEditMode">
         <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
-      <ion-datetime-button datetime="datetime" [disabled]="!isEditMode"></ion-datetime-button>
+      <datepicker [(value)]="procedure.date" [disabled]="!isEditMode"></datepicker>
     </ion-item>
 
     <ion-textarea [(ngModel)]="procedure.details" name="details" placeholder="Описание" autoGrow="true" *ngIf="isEditMode"></ion-textarea>
@@ -32,9 +32,3 @@
 
   </form>
 </ion-content>
-
-<ion-modal [keepContentsMounted]="true">
-  <ng-template>
-    <ion-datetime id="datetime" presentation="date"></ion-datetime>
-  </ng-template>
-</ion-modal>

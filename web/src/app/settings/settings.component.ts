@@ -5,6 +5,7 @@ import { Location } from '@angular/common';
 import { addIcons } from "ionicons";
 import { arrowBack, add, close, checkmark, trash } from 'ionicons/icons';
 import { PatientsService } from '../patients.service';
+import { AuthService } from '../auth.service';
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -21,7 +22,7 @@ export class SettingsComponent implements OnInit {
   addingNewProcedure: boolean = false;
   newProcedure: string = "";
 
-  constructor(private location: Location, private patientsService: PatientsService) { 
+  constructor(private location: Location, private patientsService: PatientsService, private authService: AuthService) { 
     addIcons({"add": add});
   }
 
@@ -99,5 +100,10 @@ export class SettingsComponent implements OnInit {
   deleteProcedureType(index: number) {
     this.procedureTypes.splice(index, 1);
     this.patientsService.updateProcedureTypes(this.procedureTypes).subscribe({});
+  }
+
+  logout() {
+    this.authService.logout();
+    window.location.reload();
   }
 }

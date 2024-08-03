@@ -6,7 +6,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { MainComponent } from './main/main.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { SettingsComponent } from './settings/settings.component';
@@ -18,6 +18,8 @@ import { DatePickerModalComponent } from './date-picker-modal/date-picker-modal.
 import { ViewListPatientComponentComponent } from './view-list-patient-component/view-list-patient-component.component';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { LoginComponent } from './login/login.component';
+import { jwtInterceptor } from './jwt.interceptor';
 
 @NgModule({
   declarations: [
@@ -29,6 +31,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     ProcedureComponent,
     DatePickerModalComponent,
     ViewListPatientComponentComponent,
+    LoginComponent,
   ],
   imports: [BrowserModule, IonicModule.forRoot(), FormsModule, AppRoutingModule, FontAwesomeModule, ServiceWorkerModule.register('ngsw-worker.js', {
   enabled: !isDevMode(),
@@ -38,8 +41,8 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 })],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    provideHttpClient(withInterceptorsFromDi()),
-    { provide: LocationStrategy, useClass: HashLocationStrategy }
+    provideHttpClient(withInterceptors([jwtInterceptor])),
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
   ],
   bootstrap: [AppComponent],
 })

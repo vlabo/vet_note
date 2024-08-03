@@ -141,8 +141,21 @@ func updateProcedureTypes(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+func authenticate(c echo.Context) error {
+	return c.NoContent(http.StatusOK)
+}
+
 //go:embed web/www/*
 var embeddedFiles embed.FS
+
+func basicAuthMiddleware(username, password string) echo.MiddlewareFunc {
+	return middleware.BasicAuth(func(providedUsername, providedPassword string, c echo.Context) (bool, error) {
+		if providedUsername == username && providedPassword == password {
+			return true, nil
+		}
+		return false, nil
+	})
+}
 
 func main() {
 	args := os.Args
@@ -156,20 +169,27 @@ func main() {
 		fmt.Printf("%s\n", err)
 		panic("Failed to initialize db")
 	}
+	username := os.Getenv("AUTH_USERNAME")
+	password := os.Getenv("AUTH_PASSWORD")
 
 	e := echo.New()
+
 	e.Use(middleware.Logger())
-	e.GET("/v1/patient-list", getPatientList)
-	e.GET("/v1/patient/:patientId", getPatient)
-	e.POST("/v1/patient", updatePatient)
-	e.DELETE("/v1/patient/:patientId", deletePatient)
-	e.GET("/v1/procedure/:procedureId", getProcedure)
-	e.POST("/v1/procedure/:patientId", updateProcedure)
-	e.DELETE("/v1/procedure/:procedureId", deleteProcedure)
-	e.GET("/v1/patient-types", getPatientTypes)
-	e.POST("/v1/patient-types", updatePatientTypes)
-	e.GET("/v1/procedure-types", getProcedureTypes)
-	e.POST("/v1/procedure-types", updateProcedureTypes)
+
+	apiV1 := e.Group("/v1")
+	apiV1.Use(basicAuthMiddleware(username, password))
+	apiV1.GET("/authenticate", authenticate)
+	apiV1.GET("/patient-list", getPatientList)
+	apiV1.GET("/patient/:patientId", getPatient)
+	apiV1.POST("/patient", updatePatient)
+	apiV1.DELETE("/patient/:patientId", deletePatient)
+	apiV1.GET("/procedure/:procedureId", getProcedure)
+	apiV1.POST("/procedure/:patientId", updateProcedure)
+	apiV1.DELETE("/procedure/:procedureId", deleteProcedure)
+	apiV1.GET("/patient-types", getPatientTypes)
+	apiV1.POST("/patient-types", updatePatientTypes)
+	apiV1.GET("/procedure-types", getProcedureTypes)
+	apiV1.POST("/procedure-types", updateProcedureTypes)
 
 	subFS, err := fs.Sub(embeddedFiles, "web/www")
 	if err != nil {

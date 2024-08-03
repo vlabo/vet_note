@@ -68,8 +68,7 @@ export class PatientComponent implements OnInit, OnDestroy {
       this.patientService.getPatient(id).subscribe({
         next: patient => {
           this.patient = patient;
-          console.log(this.patient);
-        }
+       }
       })
     });
   }
@@ -107,6 +106,7 @@ export class PatientComponent implements OnInit, OnDestroy {
   updatePatient() {
     if (this.patient) {
       this.patientService.updatePatient(this.patient).subscribe({});
+      this.patientService.triggerPatientListReload();
     }
   }
 

@@ -56,7 +56,6 @@ export class ProcedureComponent implements OnInit {
         this.patientsService.getProcedure(procedureId).subscribe({
           next: procedure => {
             this.procedure = procedure;
-            console.log(this.procedure);
             this.date = this.procedure.date;
             this.patientId = procedure.patientId;
           }

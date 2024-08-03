@@ -1,26 +1,27 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { add, settingsSharp } from 'ionicons/icons';
 import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { IonSearchbar } from '@ionic/angular';
-import Fuse, { FuseResult } from 'fuse.js';
+import Fuse from 'fuse.js';
 import { ViewListPatient } from 'src/app/types';
 import { PatientsService } from '../patients.service';
 import { addIcons } from 'ionicons';
-import { filter, Subscription } from 'rxjs';
+import { debounceTime, filter, Subject, Subscription } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
-})
-export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
+  encapsulation: ViewEncapsulation.None // Disable view encapsulation
+  })
+export class MainComponent implements OnInit, OnDestroy {
   // Icons
   microchip = faMicrochip;
   user = faUser;
   minus = faMinus;
   phone = faPhone;
-
 
   private routerSubscription: Subscription | null = null;
 
@@ -28,28 +29,29 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('searchbar', { static: false }) searchbar!: IonSearchbar;
 
   patients: ViewListPatient[] = [];
-  filteredPatients: ViewListPatient[] = [];
+  filteredPatients: any[] = [];
 
   fuse: Fuse<ViewListPatient>;
 
-  searchQuery: string | null = "";
-  searchResult: FuseResult<ViewListPatient>[] | undefined;
-
-  constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService) {
+  private searchTerms = new Subject<string>();
+  sanitizer: DomSanitizer
+  constructor(private router: Router, private route: ActivatedRoute, private patientsService: PatientsService, private s: DomSanitizer, private cdr: ChangeDetectorRef) {
     this.fuse = new Fuse(this.patients, {});
+    this.sanitizer = s;
   }
 
   async ngOnInit() {
     // Initialization.
     addIcons({ "add": add, "settings": settingsSharp });
 
-    console.log("Init")
-    this.loadPatientList();
-    this.routerSubscription = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        this.loadPatientList();
-      });
+    this.subscribeToPatientList();
+    this.patientsService.triggerPatientListReload();
+
+    this.searchTerms.pipe(
+      debounceTime(300) // Wait for 300ms pause in events
+    ).subscribe(query => {
+      this.filterList(query)
+    });
   }
 
   ngOnDestroy(): void {
@@ -58,30 +60,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  loadPatientList() {
-    // TODO: if new patients come from the server this need to be updated. 
-    this.patientsService.getPatientList().subscribe({
+  subscribeToPatientList() {
+    this.patientsService.getPatientListObservable().subscribe({
       next: patients => {
         this.patients = patients;
         this.filteredPatients = this.patients;
         this.fuse = new Fuse(this.patients, {
-          keys: ['name', 'owner', 'chip_id', "phone"],
+          keys: ['name', 'owner', 'chipId', "phone"],
           includeMatches: true,
         });
 
         // the query parameter from the URL and filter the list based on it.
-        this.searchQuery = this.route.snapshot.queryParamMap.get('query');
-        if (this.searchQuery) {
-          this.filterList(this.searchQuery);
-        }
+        let searchQuery = this.route.snapshot.queryParamMap.get('query');
+        this.filterList(searchQuery);
+        this.searchbar.value = searchQuery;
       }
     });
-  }
-
-  ngAfterViewInit(): void {
-    if (this.searchbar && this.searchQuery) {
-      this.searchbar.value = this.searchQuery;
-    }
   }
 
   goToPatient(patientId: string): void {
@@ -98,50 +92,43 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // onSearch is called when the search input changes. It filters the list of patients based on the search query.
   onSearch(event: any): void {
-    const query = event.target.value;
-    this.searchQuery = query;
-    if (!query) {
-      this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
-      this.filteredPatients = this.patients;
-      this.searchResult = [];
-    } else {
-      this.filterList(query)
-    }
+    this.searchTerms.next(event.target.value);
   }
 
   // filterList calls the filter function of the fuse.js library to filter the patient list.
-  filterList(query: string): void {
+  filterList(query: string | null): void {
     this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true });
-    const result = this.fuse.search(query);
-    this.searchResult = result;
-    this.filteredPatients = result.map(res => res.item);
-  }
-
-  // highlight checks the search result and adds blue bold tag to all the matched characters of they key.
-  highlight(p: ViewListPatient, key: string, includeEmpty: boolean = true): string {
-    let highlightedText: string = p[key as keyof ViewListPatient] as string;
-    var hasMatch = false;
-    if (this.searchResult) {
-      this.searchResult.forEach(m => {
-        if (m.item !== p) {
-          return;
+    if(query) {
+      const result = this.fuse.search(query);
+      this.filteredPatients = result.map((res): ViewListPatient  => {
+        let copy : any = {
+          id: res.item.id,
+          type: res.item.type,
+          name: res.item.name,
+          owner: res.item.owner,
         }
-        m.matches?.forEach(match => {
-          if (match.key !== key) {
-            return;
-          }
-          hasMatch = true;
-
-          var indices = match.indices.slice().reverse();
+        res.matches?.forEach( match => {
+          let text = res.item[match.key as keyof ViewListPatient]; 
+          let indices = match.indices.slice().reverse();
           indices.forEach(([start, end]) => {
-            highlightedText = highlightedText.substring(0, start) + '<span class="bold-blue">' + highlightedText.substring(start, end + 1) + '</span>' + highlightedText.substring(end + 1);
+            text = text.substring(0, start) + '<span class="bold-blue">' + text.substring(start, end + 1) + '</span>' + text.substring(end + 1);
           });
+          // @ts-ignore
+          copy[match.key] = this.sanitizer.bypassSecurityTrustHtml(text);
         });
+
+        return copy;
+      });
+    } else {
+      this.filteredPatients = this.patients.map((p): ViewListPatient  => {
+        let copy : any = {
+          id: p.id,
+          type: p.type,
+          name: p.name,
+          owner: p.owner,
+        }
+        return copy;
       });
     }
-    if (!hasMatch && !includeEmpty) {
-      return "";
-    }
-    return highlightedText;
   }
-}
+ }

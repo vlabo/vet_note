@@ -15,11 +15,26 @@ import { PatientComponent } from './patient/patient.component';
 import { EditPatientComponent } from './edit-patient/edit-patient.component';
 import { ProcedureComponent } from './procedure/procedure.component';
 import { DatePickerModalComponent } from './date-picker-modal/date-picker-modal.component';
+import { ViewListPatientComponentComponent } from './view-list-patient-component/view-list-patient-component.component';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 @NgModule({
-  declarations: [AppComponent, MainComponent, SettingsComponent, PatientComponent, EditPatientComponent, ProcedureComponent, DatePickerModalComponent],
+  declarations: [
+    AppComponent,
+    MainComponent,
+    SettingsComponent,
+    PatientComponent,
+    EditPatientComponent,
+    ProcedureComponent,
+    DatePickerModalComponent,
+    ViewListPatientComponentComponent,
+  ],
   imports: [BrowserModule, IonicModule.forRoot(), FormsModule, AppRoutingModule, FontAwesomeModule],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient(withInterceptorsFromDi())],
+  providers: [
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: LocationStrategy, useClass: HashLocationStrategy }
+  ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

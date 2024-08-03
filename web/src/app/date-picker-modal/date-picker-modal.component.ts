@@ -16,7 +16,6 @@ export class DatePickerModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.selectedDate = this.value;
-    console.log("Selected date", this.value);
   }
 
   openDatePickerPopover() {

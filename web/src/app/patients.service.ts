@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable,  Subject } from 'rxjs';
 import { ViewListPatient, ViewPatient, ViewProcedure } from 'src/app/types';
 
 
@@ -10,11 +10,21 @@ import { ViewListPatient, ViewPatient, ViewProcedure } from 'src/app/types';
 export class PatientsService {
   private Url: string = "/v1";
 
+  private patientListSubject: Subject<ViewListPatient[]> = new Subject();
+
   constructor(private http: HttpClient) { }
 
   // Main list
-  public getPatientList(): Observable<ViewListPatient[]> {
-      return this.http.get<ViewListPatient[]>(`${this.Url}/patient-list`);
+  public triggerPatientListReload() {
+      this.http.get<ViewListPatient[]>(`${this.Url}/patient-list`).subscribe({
+        next: patientsList => {
+          this.patientListSubject.next(patientsList);
+        }
+      })
+  }
+
+  public getPatientListObservable(): Observable<ViewListPatient[]> {
+      return this.patientListSubject.asObservable();
   }
 
   // Patient

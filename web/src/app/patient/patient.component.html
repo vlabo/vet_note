@@ -6,7 +6,10 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </ion-buttons>
-      <ion-title>{{ patient.name }} - {{ patient.type }}</ion-title>
+      <div class="header-content">
+        <ion-title>{{ patient.name }}</ion-title>
+        <div class="subtitle">{{ patient.type }}</div>
+      </div>
       <ion-button slot="end" fill="clear" color="danger" (click)="presentDeleteConfirm()">Изтрий</ion-button>
       <ion-button slot="end" fill="clear" (click)="openEdit()">Редактирай</ion-button>
     </ion-toolbar>
@@ -63,9 +66,10 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionBlur)="updatePatient()" placeholder="Бележка" autoGrow="true"></ion-textarea>
+  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionBlur)="updatePatient()" placeholder="Бележка"
+    autoGrow="true"></ion-textarea>
   <ion-item>
-    <ion-title>Исторя</ion-title>
+    <ion-title>История</ion-title>
   </ion-item>
 
   <ion-list>

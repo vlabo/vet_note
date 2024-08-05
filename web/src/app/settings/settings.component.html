@@ -48,10 +48,19 @@
         <ion-label> Тип процедура </ion-label>
       </ion-item-divider>
       <ion-reorder-group disabled="false" (ionItemReorder)="handleReorderProcedures($any($event))">
-        <ion-item *ngFor="let type of procedureTypes">
-          <ion-label> {{ type }} </ion-label>
-          <ion-reorder slot="end"></ion-reorder>
-        </ion-item>
+        <ion-item-sliding *ngFor="let type of procedureTypes; let i = index">
+          <ion-item>
+            <ion-label> {{ type }} </ion-label>
+            <ion-reorder slot="end"></ion-reorder>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteProcedureType(i)">
+              <ion-icon slot="start" name="trash"></ion-icon>
+              Изтрий
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
       </ion-reorder-group>
       <ion-item *ngIf="addingNewProcedure">
         <ion-input [(ngModel)]="newProcedure" fill="outline"></ion-input>

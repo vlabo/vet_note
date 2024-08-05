@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -145,9 +146,6 @@ func authenticate(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-//go:embed web/www/*
-var embeddedFiles embed.FS
-
 func basicAuthMiddleware(username, password string) echo.MiddlewareFunc {
 	return middleware.BasicAuth(func(providedUsername, providedPassword string, c echo.Context) (bool, error) {
 		if providedUsername == username && providedPassword == password {
@@ -157,14 +155,23 @@ func basicAuthMiddleware(username, password string) echo.MiddlewareFunc {
 	})
 }
 
+//go:embed web/www/*
+var embeddedFiles embed.FS
+
+var (
+	port         = flag.Int("port", 8000, "the port to listen on")
+	databaseFile = flag.String("db", "", "path to the database")
+	useCors      = flag.Bool("cors", false, "enable cors")
+)
+
 func main() {
-	args := os.Args
-	if len(args) < 2 {
-		fmt.Printf("supply database file argument: %s test.db", args[0])
-		return
+	flag.Parse()
+	if *databaseFile == "" {
+		flag.Usage()
+		os.Exit(0)
 	}
 
-	err := db.InitializeDB(args[1])
+	err := db.InitializeDB(*databaseFile)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		panic("Failed to initialize db")
@@ -175,6 +182,9 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
+	if *useCors {
+		e.Use(middleware.CORS())
+	}
 
 	apiV1 := e.Group("/v1")
 	apiV1.Use(basicAuthMiddleware(username, password))
@@ -198,5 +208,5 @@ func main() {
 	}
 	e.GET("/*", echo.WrapHandler(http.FileServer(http.FS(subFS))))
 
-	e.Logger.Fatal(e.Start("0.0.0.0:8000"))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("127.0.0.1:%d", *port)))
 }

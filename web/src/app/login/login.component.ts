@@ -11,8 +11,9 @@ export class LoginComponent {
   username: string = "";
   password: string = "";
   error: string = "";
+  passwordVisible: boolean = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) { }
 
   login() {
     this.authService.login(this.username, this.password).subscribe({
@@ -20,8 +21,12 @@ export class LoginComponent {
         this.router.navigate(['/']);
       },
       error: error => {
-        this.error = error;
+        this.error = error.message;
       }
     });
+  }
+
+  togglePasswordVisibility() {
+    this.passwordVisible = !this.passwordVisible;
   }
 }

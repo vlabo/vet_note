@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, SecurityContext, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { add, settingsSharp } from 'ionicons/icons';
 import { faMicrochip, faUser, faMinus, faPhone } from '@fortawesome/free-solid-svg-icons';
@@ -97,21 +97,24 @@ export class MainComponent implements OnInit, OnDestroy {
 
   // filterList calls the filter function of the fuse.js library to filter the patient list.
   filterList(query: string | null): void {
-    this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true });
+    // this.router.navigate([], { queryParams: { query: query }, queryParamsHandling: 'merge', replaceUrl: true });
     if(query) {
       const result = this.fuse.search(query);
       this.filteredPatients = result.map((res): ViewListPatient  => {
         let copy : any = {
           id: res.item.id,
-          type: res.item.type,
-          name: res.item.name,
-          owner: res.item.owner,
+          type: this.escapeHtml(res.item.type),
+          name: this.escapeHtml(res.item.name),
+          owner: this.escapeHtml(res.item.owner),
         }
         res.matches?.forEach( match => {
-          let text = res.item[match.key as keyof ViewListPatient]; 
+          let text = this.escapeHtml(res.item[match.key as keyof ViewListPatient]); 
+          if(!text) {
+            return;
+          }
           let indices = match.indices.slice().reverse();
           indices.forEach(([start, end]) => {
-            text = text.substring(0, start) + '<span class="bold-blue">' + text.substring(start, end + 1) + '</span>' + text.substring(end + 1);
+            text = text!.substring(0, start) + '<span class="bold-blue">' + text!.substring(start, end + 1) + '</span>' + text!.substring(end + 1);
           });
           // @ts-ignore
           copy[match.key] = this.sanitizer.bypassSecurityTrustHtml(text);
@@ -123,12 +126,19 @@ export class MainComponent implements OnInit, OnDestroy {
       this.filteredPatients = this.patients.map((p): ViewListPatient  => {
         let copy : any = {
           id: p.id,
-          type: p.type,
-          name: p.name,
-          owner: p.owner,
+          type: this.escapeHtml(p.type),
+          name: this.escapeHtml(p.name),
+          owner: this.escapeHtml(p.owner),
         }
         return copy;
       });
     }
   }
- }
+
+  escapeHtml(input: string): string {
+    if (!input) {
+      return '';
+    }
+    return input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+}

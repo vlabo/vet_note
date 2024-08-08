@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
-	"strconv"
 
 	"vet_note/db"
 
@@ -17,7 +16,7 @@ import (
 )
 
 func getPatientList(c echo.Context) error {
-	patients := db.GetPatientList()
+	patients, _ := db.GetPatientList()
 
 	view := make([]ViewListPatient, 0)
 	for _, p := range patients {
@@ -41,19 +40,21 @@ func getPatient(c echo.Context) error {
 }
 
 func updatePatient(c echo.Context) error {
-	var viewPatient ViewPatient
+	var viewPatient map[string]interface{}
 
 	// Bind the request body to the patient struct
 	if err := c.Bind(&viewPatient); err != nil {
 		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
 	}
-	patient := viewPatient.asPatient()
-	err := db.UpdatePatient(&patient)
+	// patient := viewPatient.asPatient()
+	id, _ := viewPatient["Id"].(string)
+	delete(viewPatient, "Id")
+	err := db.UpdatePatient(id, viewPatient)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, patientToViewPatient(patient))
+	return c.NoContent(http.StatusOK)
 }
 
 func deletePatient(c echo.Context) error {
@@ -65,48 +66,48 @@ func deletePatient(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func getProcedure(c echo.Context) error {
-	id := c.Param("procedureId")
-	procedure, err := db.GetProcedure(id)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, FmtError("Database error: %s", err))
-	}
+// func getProcedure(c echo.Context) error {
+// 	id := c.Param("procedureId")
+// 	procedure, err := db.GetProcedure(id)
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, FmtError("Database error: %s", err))
+// 	}
 
-	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
-}
+// 	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
+// }
 
-func updateProcedure(c echo.Context) error {
-	id := c.Param("patientId")
+// func updateProcedure(c echo.Context) error {
+// 	id := c.Param("patientId")
 
-	var viewProcedure ViewProcedure
+// 	var viewProcedure ViewProcedure
 
-	// Bind the request body to the procedure struct
-	if err := c.Bind(&viewProcedure); err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
-	}
+// 	// Bind the request body to the procedure struct
+// 	if err := c.Bind(&viewProcedure); err != nil {
+// 		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
+// 	}
 
-	procedure := viewProcedure.asProcedure()
-	patientId, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("Invalid patient ID %d", err))
-	}
-	procedure.PatientID = uint(patientId)
-	err = db.UpdateProcedure(&procedure)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
-	}
+// 	procedure := viewProcedure.asProcedure()
+// 	patientId, err := strconv.ParseUint(id, 10, 64)
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, FmtError("Invalid patient ID %d", err))
+// 	}
+// 	procedure.PatientID = uint(patientId)
+// 	err = db.UpdateProcedure(&procedure)
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+// 	}
 
-	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
-}
+// 	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
+// }
 
-func deleteProcedure(c echo.Context) error {
-	id := c.Param("procedureId")
-	err := db.DeleteProcedure(id)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
-	}
-	return c.NoContent(http.StatusOK)
-}
+// func deleteProcedure(c echo.Context) error {
+// 	id := c.Param("procedureId")
+// 	err := db.DeleteProcedure(id)
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+// 	}
+// 	return c.NoContent(http.StatusOK)
+// }
 
 func getPatientTypes(c echo.Context) error {
 	types, err := db.GetPatientTypes()
@@ -193,9 +194,9 @@ func main() {
 	apiV1.GET("/patient/:patientId", getPatient)
 	apiV1.POST("/patient", updatePatient)
 	apiV1.DELETE("/patient/:patientId", deletePatient)
-	apiV1.GET("/procedure/:procedureId", getProcedure)
-	apiV1.POST("/procedure/:patientId", updateProcedure)
-	apiV1.DELETE("/procedure/:procedureId", deleteProcedure)
+	// apiV1.GET("/procedure/:procedureId", getProcedure)
+	// apiV1.POST("/procedure/:patientId", updateProcedure)
+	// apiV1.DELETE("/procedure/:procedureId", deleteProcedure)
 	apiV1.GET("/patient-types", getPatientTypes)
 	apiV1.POST("/patient-types", updatePatientTypes)
 	apiV1.GET("/procedure-types", getProcedureTypes)

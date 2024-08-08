@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"vet_note/db"
-
-	"gorm.io/gorm"
 )
 
 type ViewProcedure struct {
@@ -43,11 +41,8 @@ type ViewPatient struct {
 }
 
 func (p *ViewPatient) asPatient() db.Patient {
-	id, _ := strconv.ParseUint(p.Id, 10, 64)
+	// id, _ := strconv.ParseUint(p.Id, 10, 64)
 	return db.Patient{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
 		Type:         p.Type,
 		Name:         p.Name,
 		Gender:       p.Gender,
@@ -63,11 +58,8 @@ func (p *ViewPatient) asPatient() db.Patient {
 }
 
 func (p *ViewProcedure) asProcedure() db.Procedure {
-	id, _ := strconv.ParseUint(p.Id, 10, 64)
+	// id, _ := strconv.ParseUint(p.Id, 10, 64)
 	return db.Procedure{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
 		Type:    p.Type,
 		Date:    p.Date,
 		Details: p.Details,
@@ -76,7 +68,7 @@ func (p *ViewProcedure) asProcedure() db.Procedure {
 
 func procedureToViewProcedure(p db.Procedure) ViewProcedure {
 	return ViewProcedure{
-		Id:        strconv.FormatUint(uint64(p.ID), 10),
+		Id:        "", // strconv.FormatUint(uint64(p.ID), 10),
 		Type:      p.Type,
 		Date:      p.Date,
 		Details:   p.Details,
@@ -86,7 +78,7 @@ func procedureToViewProcedure(p db.Procedure) ViewProcedure {
 
 func patientToListPatient(p db.Patient) ViewListPatient {
 	return ViewListPatient{
-		Id:     strconv.FormatUint(uint64(p.ID), 10),
+		Id:     "", // strconv.FormatUint(uint64(p.ID), 10),
 		Type:   p.Type,
 		Name:   p.Name,
 		ChipId: p.ChipId,
@@ -97,7 +89,7 @@ func patientToListPatient(p db.Patient) ViewListPatient {
 
 func patientToViewPatient(p db.Patient) ViewPatient {
 	vp := ViewPatient{
-		Id:           strconv.FormatUint(uint64(p.ID), 10),
+		Id:           "", // strconv.FormatUint(uint64(p.ID), 10),
 		Type:         p.Type,
 		Name:         p.Name,
 		Gender:       p.Gender,

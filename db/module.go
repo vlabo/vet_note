@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -23,19 +24,37 @@ type Procedure struct {
 	Details string
 }
 
+func (p *Procedure) Update(newValues map[string]interface{}) error {
+	v := reflect.ValueOf(p).Elem()
+	for key, value := range newValues {
+		field := v.FieldByName(key)
+		if !field.IsValid() {
+			return fmt.Errorf("invalid field name %s", key)
+		}
+		if !field.CanSet() {
+			return fmt.Errorf("cannot set field %s", key)
+		}
+		val := reflect.ValueOf(value)
+		if field.Type() != val.Type() {
+			return fmt.Errorf("provided value type didn't match struct field type for field %s", key)
+		}
+		field.Set(val)
+	}
+	return nil
+}
+
 type Patient struct {
-	Type         string
-	Name         string
-	Gender       string
-	BirthDate    string
-	ChipId       string
-	Weight       float64
-	Castrated    bool
-	LastModified string
-	Note         string
-	Owner        string
-	OwnerPhone   string
-	Procedures   []Procedure
+	Type       string
+	Name       string
+	Gender     string
+	BirthDate  string
+	ChipId     string
+	Weight     float64
+	Castrated  bool
+	Note       string
+	Owner      string
+	OwnerPhone string
+	Procedures []Procedure
 }
 
 func PatientFromJson(data string) (patient Patient, err error) {
@@ -46,24 +65,21 @@ func PatientFromJson(data string) (patient Patient, err error) {
 	return
 }
 
-type PatientMap map[string]interface{}
-
-func PatientMapFromJson(data string) (PatientMap, error) {
-	var patient PatientMap
-	err := json.Unmarshal([]byte(data), &patient)
-	if err != nil {
-		return patient, fmt.Errorf("failed to unmarshal current patient data: %s", err)
-	}
-	return patient, nil
-}
-
-func (pm PatientMap) Update(newValues map[string]interface{}) error {
+func (p *Patient) Update(newValues map[string]interface{}) error {
+	v := reflect.ValueOf(p).Elem()
 	for key, value := range newValues {
-		if _, exists := pm[key]; exists {
-			pm[key] = value
-		} else {
+		field := v.FieldByName(key)
+		if !field.IsValid() {
 			return fmt.Errorf("invalid field name %s", key)
 		}
+		if !field.CanSet() {
+			return fmt.Errorf("cannot set field %s", key)
+		}
+		val := reflect.ValueOf(value)
+		if field.Type() != val.Type() {
+			return fmt.Errorf("provided value type didn't match struct field type for field %s", key)
+		}
+		field.Set(val)
 	}
 	return nil
 }
@@ -177,7 +193,7 @@ func UpdatePatient(id string, changes map[string]interface{}) (err error) {
 	}
 
 	// Unmarshal the current data into a map
-	patient, err := PatientMapFromJson(currentData)
+	patient, err := PatientFromJson(currentData)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal current patient data: %s", err)
 	}
@@ -225,49 +241,31 @@ func UpdateProcedure(patientId string, procedureId string, changes map[string]in
 	}
 
 	// Unmarshal the current data into a Patient struct
-	var currentPatient map[string]interface{}
-	err = json.Unmarshal([]byte(currentData), &currentPatient)
+	patient, err := PatientFromJson(currentData)
+	// var currentPatient map[string]interface{}
+	// err = json.Unmarshal([]byte(currentData), &currentPatient)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal current patient data: %s", err)
 	}
 
 	// Find the procedure to update
-	procedures, ok := currentPatient["Procedures"].([]interface{})
-	if !ok {
-		return fmt.Errorf("procedures field is missing or not an array")
-	}
-
-	var procedureToUpdate map[string]interface{}
-	for _, proc := range procedures {
-		procMap, ok := proc.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		if procMap["ID"] == procedureId {
-			procedureToUpdate = procMap
+	for i := range patient.Procedures {
+		if patient.Procedures[i].ID == procedureId {
+			err := patient.Procedures[i].Update(changes)
+			if err != nil {
+				return fmt.Errorf("failed to update procedure: %s", err)
+			}
 			break
 		}
 	}
-
-	if procedureToUpdate == nil {
-		return fmt.Errorf("procedure with id %s not found", procedureId)
-	}
-
-	// Apply changes to the procedure
-	for key, value := range changes {
-		procedureToUpdate[key] = value
-	}
-
-	// Update the modified_at field to the current time
-	now := time.Now().Format(time.RFC3339)
-	currentPatient["LastModified"] = now
-
 	// Marshal the updated patient data into JSON
-	updatedData, err := json.Marshal(currentPatient)
+	updatedData, err := json.Marshal(patient)
 	if err != nil {
 		return fmt.Errorf("failed to marshal updated patient data: %s", err)
 	}
 
+	// Update the modified_at field to the current time
+	now := time.Now().Format(time.RFC3339)
 	// Update the patient record in the database
 	updateQuery := `UPDATE patients SET data = ?, modified_at = ? WHERE id = ?`
 	_, err = db.Exec(updateQuery, string(updatedData), now, patientId)
@@ -291,8 +289,7 @@ func DeleteProcedure(patientId string, procedureId string) (err error) {
 	}
 
 	// Unmarshal the current data into a Patient struct
-	var currentPatient Patient
-	err = json.Unmarshal([]byte(currentData), &currentPatient)
+	currentPatient, err := PatientFromJson(currentData)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal current patient data: %s", err)
 	}
@@ -310,15 +307,14 @@ func DeleteProcedure(patientId string, procedureId string) (err error) {
 		return fmt.Errorf("procedure with id %s not found", procedureId)
 	}
 
-	// Update the modified_at field to the current time
-	now := time.Now().Format(time.RFC3339)
-	currentPatient.LastModified = now
-
 	// Marshal the updated patient data into JSON
 	updatedData, err := json.Marshal(currentPatient)
 	if err != nil {
 		return fmt.Errorf("failed to marshal updated patient data: %s", err)
 	}
+
+	// Update the modified_at field to the current time
+	now := time.Now().Format(time.RFC3339)
 
 	// Update the patient record in the database
 	updateQuery := `UPDATE patients SET data = ?, modified_at = ? WHERE id = ?`
@@ -330,36 +326,105 @@ func DeleteProcedure(patientId string, procedureId string) (err error) {
 	return nil
 }
 
-func GetPatientTypes() (types string, err error) {
-	// var settings Settings
-	// result := connection.First(&settings)
-	// if result.Error != nil {
-	// 	err = fmt.Errorf("failed to get patient types: %s", result.Error)
-	// }
-	// types = settings.PatientTypes
-	return
+func GetSettings() (Settings, error) {
+	var settings Settings
+	var data string
+
+	query := `SELECT data FROM settings WHERE id = 'settings'`
+	err := db.QueryRow(query).Scan(&data)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return settings, fmt.Errorf("settings not found")
+		}
+		return settings, fmt.Errorf("failed to query settings: %s", err)
+	}
+
+	err = json.Unmarshal([]byte(data), &settings)
+	if err != nil {
+		return settings, fmt.Errorf("failed to unmarshal settings data: %s", err)
+	}
+
+	return settings, nil
 }
 
-func UpdatePatientTypes(types string) {
-	// var settings Settings
-	// connection.First(&settings)
-	// settings.PatientTypes = types
-	// connection.Save(&settings)
+func UpdatePatientSettings(newPatientTypes []SettingValue) error {
+	settings, err := GetSettings()
+	if err != nil {
+		return fmt.Errorf("failed to get current settings: %s", err)
+	}
+
+	// TODO: dont replace, update
+	settings.PatientTypes = newPatientTypes
+
+	return saveSettings(settings)
 }
 
-func GetProcedureTypes() (types string, err error) {
-	// var settings Settings
-	// result := connection.First(&settings)
-	// if result.Error != nil {
-	// 	err = fmt.Errorf("failed to get procedure types: %s", result.Error)
-	// }
-	// types = settings.ProcedureTypes
-	return
+func DeletePatientSettings(idsToDelete []string) error {
+	settings, err := GetSettings()
+	if err != nil {
+		return fmt.Errorf("failed to get current settings: %s", err)
+	}
+
+	updatedPatientTypes := []SettingValue{}
+	for _, setting := range settings.PatientTypes {
+		if !contains(idsToDelete, setting.Id) {
+			updatedPatientTypes = append(updatedPatientTypes, setting)
+		}
+	}
+	settings.PatientTypes = updatedPatientTypes
+
+	return saveSettings(settings)
 }
 
-func UpdateProcedureTypes(types string) {
-	// var settings Settings
-	// connection.First(&settings)
-	// settings.ProcedureTypes = types
-	// connection.Save(&settings)
+func UpdateProcedureSettings(newProcedureTypes []SettingValue) error {
+	settings, err := GetSettings()
+	if err != nil {
+		return fmt.Errorf("failed to get current settings: %s", err)
+	}
+	// TODO: dont replace, update
+	settings.ProcedureTypes = newProcedureTypes
+
+	return saveSettings(settings)
+}
+
+func DeleteProcedureSettings(idsToDelete []string) error {
+	settings, err := GetSettings()
+	if err != nil {
+		return fmt.Errorf("failed to get current settings: %s", err)
+	}
+
+	updatedProcedureTypes := []SettingValue{}
+	for _, setting := range settings.ProcedureTypes {
+		if !contains(idsToDelete, setting.Id) {
+			updatedProcedureTypes = append(updatedProcedureTypes, setting)
+		}
+	}
+	settings.ProcedureTypes = updatedProcedureTypes
+
+	return saveSettings(settings)
+}
+
+func saveSettings(settings Settings) error {
+	updatedData, err := json.Marshal(settings)
+	if err != nil {
+		return fmt.Errorf("failed to marshal updated settings data: %s", err)
+	}
+
+	now := time.Now().Format(time.RFC3339)
+	updateQuery := `UPDATE settings SET data = ?, modified_at = ? WHERE id = 'settings'`
+	_, err = db.Exec(updateQuery, string(updatedData), now)
+	if err != nil {
+		return fmt.Errorf("failed to update settings: %s", err)
+	}
+
+	return nil
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

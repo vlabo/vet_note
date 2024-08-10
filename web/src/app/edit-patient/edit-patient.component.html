@@ -4,7 +4,7 @@
       <ion-title *ngIf="!newMode">Редактирай Пациент</ion-title>
       <ion-title *ngIf="newMode">Нов Пациент</ion-title>
       <ion-buttons slot="end">
-        <ion-button (click)="cancel()">Cancel</ion-button>
+        <ion-button (click)="cancel()">Отказ</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
@@ -29,10 +29,10 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Тегло (кг)</ion-label>
-      <ion-input [(ngModel)]="patient!.weight" type="number" inputmode="numeric" placeholder="0"></ion-input>
+      <ion-input [(ngModel)]="patient.weight" type="number" inputmode="numeric" placeholder="0"></ion-input>
     </ion-item>
     <ion-item>
-      <ion-toggle position="stacked" [(ngModel)]="patient!.castrated">Кастриранo</ion-toggle>
+      <ion-toggle position="stacked" [(ngModel)]="patient.castrated">Кастриранo</ion-toggle>
     </ion-item>
     <ion-item>
       <ion-label>Дата на раждане</ion-label>
@@ -40,16 +40,16 @@
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Име на собственик</ion-label>
-      <ion-input [(ngModel)]="patient!.owner" placeholder="Име"></ion-input>
+      <ion-input [(ngModel)]="patient.owner" placeholder="Име"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Телефон на собственик</ion-label>
-      <ion-input [(ngModel)]="patient!.ownerPhone" placeholder="0812345679"></ion-input>
+      <ion-input [(ngModel)]="patient.ownerPhone" placeholder="0812345679"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Чип</ion-label>
-      <ion-input [(ngModel)]="patient!.chipId" placeholder="100..."></ion-input>
+      <ion-input [(ngModel)]="patient.chipId" placeholder="100..."></ion-input>
     </ion-item>
   </ion-list>
-  <ion-button expand="full" (click)="save()">Save</ion-button>
+  <ion-button expand="full" (click)="save()">Запиши</ion-button>
 </ion-content>

@@ -3,8 +3,6 @@ import { PatientsService } from '../patients.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewPatient } from '../types';
-import { DatePickerModalComponent } from '../date-picker-modal/date-picker-modal.component';
-import { ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-edit-patient',
@@ -12,7 +10,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['./edit-patient.component.scss'],
 })
 export class EditPatientComponent implements OnInit {
-  patient: ViewPatient;
+  patient: ViewPatient = {};
   types: String[] = [];
   newMode = false;
 
@@ -21,23 +19,7 @@ export class EditPatientComponent implements OnInit {
     private location: Location,
     private route: ActivatedRoute,
     private router: Router,
-    private modalController: ModalController,
   ) {
-    this.patient = {
-      id: "",
-      type: "",
-      name: "",
-      gender: 'unknown',
-      birthDate: "-", 
-      chipId: "",
-      weight: 0 /* float64 */,
-      castrated: false,
-      lastModified: "",
-      note: "",
-      owner: "",
-      ownerPhone: "",
-      procedures: [],
-    };
   }
 
   ngOnInit(): void {
@@ -61,7 +43,7 @@ export class EditPatientComponent implements OnInit {
     });
     this.patientsService.getPatientTypes().subscribe({
       next: types => {
-        this.types = types;
+        this.types = types.map((value) => value.value);
       }
     });
   }

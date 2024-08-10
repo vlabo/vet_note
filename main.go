@@ -4,11 +4,9 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"io"
 	"io/fs"
 	"net/http"
 	"os"
-	"strconv"
 
 	"vet_note/db"
 
@@ -21,7 +19,9 @@ func getPatientList(c echo.Context) error {
 
 	view := make([]ViewListPatient, 0)
 	for _, p := range patients {
-		view = append(view, patientToListPatient(p))
+		vlp := ViewListPatient{}
+		vlp.fromPatient(p)
+		view = append(view, vlp)
 	}
 
 	return c.JSON(http.StatusCreated, view)
@@ -36,8 +36,11 @@ func getPatient(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
 	}
 
+	vp := ViewPatient{}
+	vp.fromPatient(patient)
+
 	// Return the patient data as JSON
-	return c.JSON(http.StatusOK, patientToViewPatient(patient))
+	return c.JSON(http.StatusOK, vp)
 }
 
 func updatePatient(c echo.Context) error {
@@ -47,13 +50,25 @@ func updatePatient(c echo.Context) error {
 	if err := c.Bind(&viewPatient); err != nil {
 		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
 	}
-	patient := viewPatient.asPatient()
-	err := db.UpdatePatient(&patient)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
+	if viewPatient.ID == nil {
+		// New entry
+		patient := viewPatient.asPatient()
+		err := db.CreatePatient(&patient)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
+		}
+		viewPatient.fromPatient(patient)
+	} else {
+		// Update entry
+		patient := viewPatient.asPatient()
+		err := db.UpdatePatient(*viewPatient.ID, &patient)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
+		}
+		viewPatient.fromPatient(patient)
 	}
 
-	return c.JSON(http.StatusOK, patientToViewPatient(patient))
+	return c.JSON(http.StatusOK, viewPatient)
 }
 
 func deletePatient(c echo.Context) error {
@@ -72,12 +87,13 @@ func getProcedure(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, FmtError("Database error: %s", err))
 	}
 
-	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
+	viewProcedure := ViewProcedure{}
+	viewProcedure.fromProcedure(procedure)
+
+	return c.JSON(http.StatusOK, viewProcedure)
 }
 
 func updateProcedure(c echo.Context) error {
-	id := c.Param("patientId")
-
 	var viewProcedure ViewProcedure
 
 	// Bind the request body to the procedure struct
@@ -86,17 +102,23 @@ func updateProcedure(c echo.Context) error {
 	}
 
 	procedure := viewProcedure.asProcedure()
-	patientId, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("Invalid patient ID %d", err))
-	}
-	procedure.PatientID = uint(patientId)
-	err = db.UpdateProcedure(&procedure)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+	if viewProcedure.ID == nil {
+		// New procedure
+		err := db.CreateProcedure(&procedure)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+		}
+		viewProcedure.fromProcedure(procedure)
+	} else {
+		// Update procedure
+		err := db.UpdateProcedure(*viewProcedure.ID, &procedure)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+		}
+		viewProcedure.fromProcedure(procedure)
 	}
 
-	return c.JSON(http.StatusOK, procedureToViewProcedure(procedure))
+	return c.JSON(http.StatusOK, viewProcedure)
 }
 
 func deleteProcedure(c echo.Context) error {
@@ -113,16 +135,15 @@ func getPatientTypes(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
 	}
-	return c.String(http.StatusOK, types)
-}
 
-func updatePatientTypes(c echo.Context) error {
-	body, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to update settings: %s", err))
+	viewSettings := make([]ViewSetting, 0, len(types))
+	for _, s := range types {
+		viewSetting := ViewSetting{}
+		viewSetting.fromSetting(s)
+		viewSettings = append(viewSettings, viewSetting)
 	}
-	db.UpdatePatientTypes(string(body))
-	return c.NoContent(http.StatusOK)
+
+	return c.JSON(http.StatusOK, viewSettings)
 }
 
 func getProcedureTypes(c echo.Context) error {
@@ -130,15 +151,47 @@ func getProcedureTypes(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
 	}
-	return c.String(http.StatusOK, types)
+
+	viewSettings := make([]ViewSetting, 0, len(types))
+	for _, s := range types {
+		viewSetting := ViewSetting{}
+		viewSetting.fromSetting(s)
+		viewSettings = append(viewSettings, viewSetting)
+	}
+
+	return c.JSON(http.StatusOK, viewSettings)
 }
 
-func updateProcedureTypes(c echo.Context) error {
-	body, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to update settings: %s", err))
+func updateSetting(c echo.Context) error {
+	viewSetting := ViewSetting{}
+	if err := c.Bind(&viewSetting); err != nil {
+		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
 	}
-	db.UpdateProcedureTypes(string(body))
+	if err := db.UpdateSetting(viewSetting.asSetting()); err != nil {
+		return c.JSON(http.StatusBadRequest, FmtError("Failed to update setting: %s", err))
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func updateSettings(c echo.Context) error {
+	viewSettings := []ViewSetting{}
+	if err := c.Bind(&viewSettings); err != nil {
+		return c.JSON(http.StatusBadRequest, FmtError("Invalid request body: %s", err))
+	}
+	for _, viewSetting := range viewSettings {
+		if err := db.UpdateSetting(viewSetting.asSetting()); err != nil {
+			return c.JSON(http.StatusBadRequest, FmtError("Failed to update setting: %s", err))
+		}
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteSetting(c echo.Context) error {
+	id := c.Param("settingId")
+	err := db.DeleteSetting(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, FmtError("db error: %s", err))
+	}
 	return c.NoContent(http.StatusOK)
 }
 
@@ -162,6 +215,7 @@ var (
 	port         = flag.Int("port", 8000, "the port to listen on")
 	databaseFile = flag.String("db", "", "path to the database")
 	useCors      = flag.Bool("cors", false, "enable cors")
+	dbLog        = flag.Bool("dbLog", false, "enable database logging")
 )
 
 func main() {
@@ -171,7 +225,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	err := db.InitializeDB(*databaseFile)
+	err := db.InitializeDB(*databaseFile, *dbLog)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		panic("Failed to initialize db")
@@ -194,12 +248,13 @@ func main() {
 	apiV1.POST("/patient", updatePatient)
 	apiV1.DELETE("/patient/:patientId", deletePatient)
 	apiV1.GET("/procedure/:procedureId", getProcedure)
-	apiV1.POST("/procedure/:patientId", updateProcedure)
+	apiV1.POST("/procedure", updateProcedure)
 	apiV1.DELETE("/procedure/:procedureId", deleteProcedure)
 	apiV1.GET("/patient-types", getPatientTypes)
-	apiV1.POST("/patient-types", updatePatientTypes)
 	apiV1.GET("/procedure-types", getProcedureTypes)
-	apiV1.POST("/procedure-types", updateProcedureTypes)
+	apiV1.POST("/setting", updateSetting)
+	apiV1.POST("/settings", updateSettings)
+	apiV1.DELETE("/setting/:settingId", deleteSetting)
 
 	subFS, err := fs.Sub(embeddedFiles, "web/www")
 	if err != nil {

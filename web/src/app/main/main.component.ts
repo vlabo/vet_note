@@ -108,6 +108,7 @@ export class MainComponent implements OnInit, OnDestroy {
           owner: this.escapeHtml(res.item.owner),
         }
         res.matches?.forEach( match => {
+          // @ts-ignore
           let text = this.escapeHtml(res.item[match.key as keyof ViewListPatient]); 
           if(!text) {
             return;

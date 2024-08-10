@@ -4,14 +4,14 @@
 // source: view.go
 
 export interface ViewProcedure {
-  id: string;
-  type: string;
-  date: string;
-  details: string;
-  patientId: string;
+  id?: number /* uint */;
+  type?: string;
+  date?: string;
+  details?: string;
+  patientId: number /* uint */;
 }
 export interface ViewListPatient {
-  id: string;
+  id: number /* uint */;
   type: string;
   name: string;
   chipId: string;
@@ -19,19 +19,25 @@ export interface ViewListPatient {
   phone: string;
 }
 export interface ViewPatient {
-  id: string;
-  type: string;
-  name: string;
-  gender: 'unknown' | 'male' | 'female';
-  birthDate: string;
-  chipId: string;
-  weight: number /* float64 */;
-  castrated: boolean;
-  lastModified: string;
-  note: string;
-  owner: string;
-  ownerPhone: string;
-  procedures: ViewProcedure[];
+  id?: number /* uint */;
+  type?: string;
+  name?: string;
+  gender?: 'unknown' | 'male' | 'female';
+  birthDate?: string;
+  chipId?: string;
+  weight?: number /* float64 */;
+  castrated?: boolean;
+  lastModified?: string;
+  note?: string;
+  owner?: string;
+  ownerPhone?: string;
+  procedures?: ViewProcedure[];
+}
+export interface ViewSetting {
+  id?: number /* uint */;
+  type: 'PatientType' | 'ProcedureType';
+  value: string;
+  index: number /* uint */;
 }
 export interface ViewError {
   error: string;

@@ -7,7 +7,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 })
 export class DatePickerModalComponent implements OnInit {
 
-  @Input() value!: string;
+  @Input() value: string | undefined;
   @Input() disabled: boolean = false;
   @Output() valueChange = new EventEmitter<string>();
 
@@ -15,11 +15,11 @@ export class DatePickerModalComponent implements OnInit {
   selectedDate: string = "";
 
   ngOnInit(): void {
-    this.selectedDate = this.value;
+    this.selectedDate = this.value ? this.value : "";
   }
 
   openDatePickerPopover() {
-    this.selectedDate = this.value;
+    this.selectedDate = this.value ? this.value : "";
     this.isPopoverOpen = true;
   }
 
@@ -37,7 +37,10 @@ export class DatePickerModalComponent implements OnInit {
     this.onPopoverDismiss();
   }
 
-  isValidDate(dateString: string): boolean {
+  isValidDate(dateString: string | undefined): boolean {
+    if(!dateString) {
+      return false;
+    }
     const date = new Date(dateString);
     return !isNaN(date.getTime());
   }

@@ -2,23 +2,46 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
 	"vet_note/db"
-
-	"gorm.io/gorm"
 )
 
 type ViewProcedure struct {
-	Id        string `json:"id"`
-	Type      string `json:"type"`
-	Date      string `json:"date"`
-	Details   string `json:"details"`
-	PatientID string `json:"patientId"`
+	ID        *uint   `json:"id"`
+	Type      *string `json:"type"`
+	Date      *string `json:"date"`
+	Details   *string `json:"details"`
+	PatientID uint    `json:"patientId"`
+}
+
+func (vp *ViewProcedure) asProcedure() db.Procedure {
+	procedure := db.Procedure{}
+	procedure.PatientID = vp.PatientID
+
+	if vp.Type != nil {
+		procedure.Type = *vp.Type
+	}
+	if vp.Date != nil {
+		procedure.Date = *vp.Date
+	}
+	if vp.Details != nil {
+		procedure.Details = *vp.Details
+	}
+
+	return procedure
+}
+
+func (vp *ViewProcedure) fromProcedure(procedure db.Procedure) {
+	vp.ID = &procedure.ID
+	vp.PatientID = procedure.PatientID
+
+	vp.Type = &procedure.Type
+	vp.Date = &procedure.Date
+	vp.Details = &procedure.Details
 }
 
 type ViewListPatient struct {
-	Id     string `json:"id"`
+	ID     uint   `json:"id"`
 	Type   string `json:"type"`
 	Name   string `json:"name"`
 	ChipId string `json:"chipId"`
@@ -26,97 +49,127 @@ type ViewListPatient struct {
 	Phone  string `json:"phone"`
 }
 
+func (vlp *ViewListPatient) fromPatient(patient db.Patient) {
+	vlp.ID = patient.ID
+
+	vlp.Type = patient.Type
+	vlp.Name = patient.Name
+	vlp.ChipId = patient.ChipId
+	vlp.Owner = patient.Owner
+	vlp.Phone = patient.OwnerPhone
+}
+
 type ViewPatient struct {
-	Id           string          `json:"id"`
-	Type         string          `json:"type"`
-	Name         string          `json:"name"`
-	Gender       string          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
-	BirthDate    string          `json:"birthDate"`
-	ChipId       string          `json:"chipId"`
-	Weight       float64         `json:"weight"`
-	Castrated    bool            `json:"castrated"`
-	LastModified string          `json:"lastModified"`
-	Note         string          `json:"note"`
-	Owner        string          `json:"owner"`
-	OwnerPhone   string          `json:"ownerPhone"`
-	Procedures   []ViewProcedure `json:"procedures"`
+	ID           *uint            `json:"id"`
+	Type         *string          `json:"type"`
+	Name         *string          `json:"name"`
+	Gender       *string          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
+	BirthDate    *string          `json:"birthDate"`
+	ChipId       *string          `json:"chipId"`
+	Weight       *float64         `json:"weight"`
+	Castrated    *bool            `json:"castrated"`
+	LastModified *string          `json:"lastModified"`
+	Note         *string          `json:"note"`
+	Owner        *string          `json:"owner"`
+	OwnerPhone   *string          `json:"ownerPhone"`
+	Procedures   *[]ViewProcedure `json:"procedures"`
 }
 
-func (p *ViewPatient) asPatient() db.Patient {
-	id, _ := strconv.ParseUint(p.Id, 10, 64)
-	return db.Patient{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
-		Type:         p.Type,
-		Name:         p.Name,
-		Gender:       p.Gender,
-		BirthDate:    p.BirthDate,
-		ChipId:       p.ChipId,
-		Weight:       p.Weight,
-		Castrated:    p.Castrated,
-		LastModified: p.LastModified,
-		Note:         p.Note,
-		Owner:        p.Owner,
-		OwnerPhone:   p.OwnerPhone,
+func (vp *ViewPatient) asPatient() db.Patient {
+	patient := db.Patient{}
+
+	if vp.Type != nil {
+		patient.Type = *vp.Type
+	}
+	if vp.Name != nil {
+		patient.Name = *vp.Name
+	}
+	if vp.Gender != nil {
+		patient.Gender = *vp.Gender
+	}
+	if vp.BirthDate != nil {
+		patient.BirthDate = *vp.BirthDate
+	}
+	if vp.ChipId != nil {
+		patient.ChipId = *vp.ChipId
+	}
+	if vp.Weight != nil {
+		patient.Weight = *vp.Weight
+	}
+	if vp.Castrated != nil {
+		patient.Castrated = *vp.Castrated
+	}
+	if vp.LastModified != nil {
+		patient.LastModified = *vp.LastModified
+	}
+	if vp.Note != nil {
+		patient.Note = *vp.Note
+	}
+	if vp.Owner != nil {
+		patient.Owner = *vp.Owner
+	}
+	if vp.OwnerPhone != nil {
+		patient.OwnerPhone = *vp.OwnerPhone
+	}
+
+	// if vp.Procedures != nil {
+	// 	for _, vpProc := range *vp.Procedures {
+	// 		patient.Procedures = append(patient.Procedures, vpProc.asProcedure())
+	// 	}
+	// }
+
+	return patient
+}
+
+func (vp *ViewPatient) fromPatient(patient db.Patient) {
+	vp.ID = &patient.ID
+
+	vp.Type = &patient.Type
+	vp.Name = &patient.Name
+	vp.Gender = &patient.Gender
+	vp.BirthDate = &patient.BirthDate
+	vp.ChipId = &patient.ChipId
+	vp.Weight = &patient.Weight
+	vp.Castrated = &patient.Castrated
+	vp.LastModified = &patient.LastModified
+	vp.Note = &patient.Note
+	vp.Owner = &patient.Owner
+	vp.OwnerPhone = &patient.OwnerPhone
+
+	if len(patient.Procedures) > 0 {
+		var viewProcedures []ViewProcedure
+		for _, proc := range patient.Procedures {
+			vpProc := ViewProcedure{}
+			vpProc.fromProcedure(proc)
+			viewProcedures = append(viewProcedures, vpProc)
+		}
+		vp.Procedures = &viewProcedures
 	}
 }
 
-func (p *ViewProcedure) asProcedure() db.Procedure {
-	id, _ := strconv.ParseUint(p.Id, 10, 64)
-	return db.Procedure{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
-		Type:    p.Type,
-		Date:    p.Date,
-		Details: p.Details,
-	}
+type ViewSetting struct {
+	ID    *uint          `json:"id"`
+	Type  db.SettingType `json:"type" tstype:"'PatientType' | 'ProcedureType'"`
+	Value string         `json:"value"`
+	Index uint           `json:"index"`
 }
 
-func procedureToViewProcedure(p db.Procedure) ViewProcedure {
-	return ViewProcedure{
-		Id:        strconv.FormatUint(uint64(p.ID), 10),
-		Type:      p.Type,
-		Date:      p.Date,
-		Details:   p.Details,
-		PatientID: strconv.FormatUint(uint64(p.PatientID), 10),
+func (vs *ViewSetting) asSetting() db.Setting {
+	setting := db.Setting{}
+	if vs.ID != nil {
+		setting.ID = *vs.ID
 	}
+	setting.Type = vs.Type
+	setting.Value = vs.Value
+	setting.Idx = vs.Index
+	return setting
 }
 
-func patientToListPatient(p db.Patient) ViewListPatient {
-	return ViewListPatient{
-		Id:     strconv.FormatUint(uint64(p.ID), 10),
-		Type:   p.Type,
-		Name:   p.Name,
-		ChipId: p.ChipId,
-		Owner:  p.Owner,
-		Phone:  p.OwnerPhone,
-	}
-}
-
-func patientToViewPatient(p db.Patient) ViewPatient {
-	vp := ViewPatient{
-		Id:           strconv.FormatUint(uint64(p.ID), 10),
-		Type:         p.Type,
-		Name:         p.Name,
-		Gender:       p.Gender,
-		BirthDate:    p.BirthDate,
-		ChipId:       p.ChipId,
-		Weight:       p.Weight,
-		Castrated:    p.Castrated,
-		LastModified: p.LastModified,
-		Note:         p.Note,
-		Owner:        p.Owner,
-		OwnerPhone:   p.OwnerPhone,
-		Procedures:   []ViewProcedure{},
-	}
-
-	for _, proc := range p.Procedures {
-		vp.Procedures = append(vp.Procedures, procedureToViewProcedure(proc))
-	}
-
-	return vp
+func (vs *ViewSetting) fromSetting(setting db.Setting) {
+	vs.ID = &setting.ID
+	vs.Type = setting.Type
+	vs.Value = setting.Value
+	vs.Index = setting.Idx
 }
 
 type ViewError struct {

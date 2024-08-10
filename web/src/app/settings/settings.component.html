@@ -18,7 +18,7 @@
 
         <ion-item-sliding *ngFor="let type of patientTypes; let i = index">
           <ion-item>
-            <ion-label> {{ type }} </ion-label>
+            <ion-label> {{ type.value }} </ion-label>
             <ion-reorder slot="end"></ion-reorder>
           </ion-item>
 
@@ -30,16 +30,16 @@
           </ion-item-options>
         </ion-item-sliding>
       </ion-reorder-group>
-      <ion-item *ngIf="addingNewPatient">
-        <ion-input [(ngModel)]="newPatient" fill="outline"></ion-input>
-        <ion-button color="danger" (click)="cancelAddPatient()">
+      <ion-item *ngIf="newPatient">
+        <ion-input [(ngModel)]="newPatient.value" fill="outline"></ion-input>
+        <ion-button color="danger" (click)="cancelAddPatientType()">
           <ion-icon slot="icon-only" name="close"></ion-icon>
         </ion-button>
-        <ion-button color="success" (click)="pushNewPatient()">
+        <ion-button color="success" (click)="pushNewPatientType()">
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
         </ion-button>
       </ion-item>
-      <ion-button fill="clear" expand="full" (click)="addingNewPatient = true">
+      <ion-button fill="clear" expand="full" (click)="openNewPatient()">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </ion-item-group>
@@ -50,7 +50,7 @@
       <ion-reorder-group disabled="false" (ionItemReorder)="handleReorderProcedures($any($event))">
         <ion-item-sliding *ngFor="let type of procedureTypes; let i = index">
           <ion-item>
-            <ion-label> {{ type }} </ion-label>
+            <ion-label> {{ type.value }} </ion-label>
             <ion-reorder slot="end"></ion-reorder>
           </ion-item>
 
@@ -62,16 +62,16 @@
           </ion-item-options>
         </ion-item-sliding>
       </ion-reorder-group>
-      <ion-item *ngIf="addingNewProcedure">
-        <ion-input [(ngModel)]="newProcedure" fill="outline"></ion-input>
-        <ion-button color="danger" (click)="cancelAddProcedure()">
+      <ion-item *ngIf="newProcedure">
+        <ion-input [(ngModel)]="newProcedure.value" fill="outline"></ion-input>
+        <ion-button color="danger" (click)="cancelAddProcedureType()">
           <ion-icon slot="icon-only" name="close"></ion-icon>
         </ion-button>
-        <ion-button color="success" (click)="pushNewProcedure()">
+        <ion-button color="success" (click)="pushNewProcedureType()">
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
         </ion-button>
       </ion-item>
-      <ion-button fill="clear" expand="full" (click)="addingNewProcedure = true">
+      <ion-button fill="clear" expand="full" (click)="openNewProcedure()">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </ion-item-group>

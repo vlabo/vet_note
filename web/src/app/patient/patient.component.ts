@@ -110,13 +110,16 @@ export class PatientComponent implements OnInit, OnDestroy {
     }
   }
 
-  isValidDate(dateString: string): boolean {
+  isValidDate(dateString: string | undefined): boolean {
+    if(!dateString) {
+      return false;
+    }
     const date = new Date(dateString);
     return !isNaN(date.getTime());
   }
 
   getAge(): string {
-    let date = new Date(this.patient!.birthDate);
+    let date = new Date(this.patient!.birthDate!);
     // Check if the birth date is valid
     if (isNaN(date.getTime())) {
       return "-";
@@ -151,7 +154,7 @@ export class PatientComponent implements OnInit, OnDestroy {
         {
           text: 'Изтрий',
           handler: () => {
-            this.patientService.deletePatient(this.patient!.id).subscribe({
+            this.patientService.deletePatient(this.patient!.id!).subscribe({
               next: _ => {
                 this.patient = undefined;
                 this.goBack();

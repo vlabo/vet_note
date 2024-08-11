@@ -10,6 +10,7 @@ import { ViewPatient } from '../types';
   styleUrls: ['./edit-patient.component.scss'],
 })
 export class EditPatientComponent implements OnInit {
+  originalPatient: ViewPatient = {};
   patient: ViewPatient = {};
   types: String[] = [];
   newMode = false;
@@ -20,6 +21,7 @@ export class EditPatientComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
   ) {
+    this.patient.gender = "unknown";
   }
 
   ngOnInit(): void {
@@ -37,7 +39,8 @@ export class EditPatientComponent implements OnInit {
       }
       this.patientsService.getPatient(id).subscribe({
         next: patient => {
-          this.patient = patient;
+          this.originalPatient = patient;
+          this.patient = { ...patient };
         }
       })
     });
@@ -49,7 +52,7 @@ export class EditPatientComponent implements OnInit {
   }
 
   async save() {
-    this.patientsService.updatePatient(this.patient!).subscribe({
+    this.patientsService.updatePatient(this.getChangedValues(this.originalPatient, this.patient)).subscribe({
       next: patient => {
         if (this.newMode) {
           this.newMode = false;
@@ -70,8 +73,37 @@ export class EditPatientComponent implements OnInit {
     this.location.back();
   }
 
+  /**
+   * Checks if a given string is a valid date.
+   * @param dateString - The date string to check.
+   * @returns True if the string is a valid date, false otherwise.
+   */
   isValidDate(dateString: string): boolean {
-    const date = new Date(dateString);
-    return !isNaN(date.getTime());
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  getChangedValues(original: ViewPatient, updated: ViewPatient): ViewPatient {
+    const changes: ViewPatient = {
+      id: original.id,
+    };
+
+    for (const key in updated) {
+      // @ts-ignore
+      if (original[key] !== updated[key]) {
+        // @ts-ignore
+        changes[key] = updated[key];
+      }
+    }
+
+    return changes;
   }
 }

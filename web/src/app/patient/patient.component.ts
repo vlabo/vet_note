@@ -31,8 +31,8 @@ export class PatientComponent implements OnInit, OnDestroy {
   xIcon = faX;
 
   patient: ViewPatient | undefined = undefined;
+  originalNote: string = "";
   procedures: ViewProcedure[] = [];
-  originalPatient: any;
   isViewProcedure = false;
 
   selectedProcedure: ViewProcedure | null = null;
@@ -68,14 +68,15 @@ export class PatientComponent implements OnInit, OnDestroy {
       this.patientService.getPatient(id).subscribe({
         next: patient => {
           this.patient = patient;
-       }
+          this.originalNote = patient.note || "";
+        }
       })
     });
   }
 
   ngOnDestroy() {
     this.isViewProcedure = false;
-    this.updatePatient();
+    this.updateNote();
   }
 
   openEdit() {
@@ -103,15 +104,19 @@ export class PatientComponent implements OnInit, OnDestroy {
     }
   }
 
-  updatePatient() {
-    if (this.patient) {
-      this.patientService.updatePatient(this.patient).subscribe({});
-      this.patientService.triggerPatientListReload();
+  updateNote() {
+    if (this.patient && this.patient.note !== this.originalNote) {
+      let patient: ViewPatient = {
+        id: this.patient.id,
+        note: this.patient.note
+      }
+      this.patientService.updatePatient(patient).subscribe({});
+      this.originalNote = this.patient.note || "";
     }
   }
 
   isValidDate(dateString: string | undefined): boolean {
-    if(!dateString) {
+    if (!dateString) {
       return false;
     }
     const date = new Date(dateString);
@@ -149,7 +154,7 @@ export class PatientComponent implements OnInit, OnDestroy {
           text: 'Отказ',
           role: 'cancel',
           cssClass: 'secondary',
-          handler: () => {}
+          handler: () => { }
         },
         {
           text: 'Изтрий',

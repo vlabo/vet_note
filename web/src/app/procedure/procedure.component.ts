@@ -14,6 +14,7 @@ import { ViewProcedure } from '../types';
   styleUrls: ['./procedure.component.scss'],
 })
 export class ProcedureComponent implements OnInit {
+  originalProcedure: ViewProcedure;
   procedure: ViewProcedure;
   mode: "new" | "edit" | "view" = "view";
 
@@ -29,6 +30,10 @@ export class ProcedureComponent implements OnInit {
   ) {
     addIcons({ "arrow-back": arrowBack })
 
+    this.originalProcedure = {
+      date: new Date().toISOString(),
+      patientId: 0,
+    };
     this.procedure = {
       date: new Date().toISOString(),
       patientId: 0,
@@ -50,9 +55,9 @@ export class ProcedureComponent implements OnInit {
       if (procedureId) {
         this.patientsService.getProcedure(procedureId).subscribe({
           next: procedure => {
-            this.procedure = procedure;
+            this.originalProcedure = procedure;
+            this.procedure = {...procedure};
             this.date = this.procedure.date!;
-            this.procedure.patientId = procedure.patientId;
           }
         })
       } else {
@@ -85,7 +90,7 @@ export class ProcedureComponent implements OnInit {
   }
 
   saveProcedure(): void {
-    this.patientsService.updateProcedure(this.procedure!).subscribe({
+    this.patientsService.updateProcedure(this.getChangedValues(this.originalProcedure, this.procedure)).subscribe({
       next: procedure => {
         this.procedure = procedure;
         if (this.mode == "new") {
@@ -123,5 +128,22 @@ export class ProcedureComponent implements OnInit {
     });
 
     await alert.present();
+  }
+
+  getChangedValues(original: ViewProcedure, updated: ViewProcedure): ViewProcedure {
+    const changes: ViewProcedure = {
+      id: original.id,
+      patientId: original.patientId,
+    };
+
+    for (const key in updated) {
+      // @ts-ignore
+      if (original[key] !== updated[key]) {
+        // @ts-ignore
+        changes[key] = updated[key];
+      }
+    }
+
+    return changes;
   }
 }

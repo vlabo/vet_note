@@ -66,7 +66,7 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionBlur)="updatePatient()" placeholder="Бележка"
+  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionInput)="updateNote()" debounce="500" placeholder="Бележка"
     autoGrow="true"></ion-textarea>
   <ion-item>
     <ion-title>История</ion-title>

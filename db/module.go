@@ -1,28 +1,26 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
-	"github.com/glebarez/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	_ "modernc.org/sqlite"
 )
 
-var connection *gorm.DB = nil
-
 type Procedure struct {
-	gorm.Model
+	ID        int64
 	Type      string
 	Date      string
 	Details   string
-	PatientID uint
+	PatientID int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime
 }
 
 type Patient struct {
-	gorm.Model
+	ID           int64
 	Type         string
 	Name         string
 	Gender       string
@@ -34,7 +32,10 @@ type Patient struct {
 	Note         string
 	Owner        string
 	OwnerPhone   string
-	Procedures   []Procedure `gorm:"foreignKey:PatientID"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    sql.NullTime
+	Procedures   []Procedure
 }
 
 type SettingType string
@@ -45,131 +46,262 @@ const (
 )
 
 type Setting struct {
-	gorm.Model
-	Value string
-	Type  SettingType
-	Idx   uint
+	ID        int64
+	Value     string
+	Type      SettingType
+	Idx       uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime
 }
 
-func InitializeDB(path string, enableLogging bool) error {
-	config := gorm.Config{}
-	if enableLogging {
-		config.Logger = logger.New(
-			log.New(os.Stdout, "\r\n", log.LstdFlags),
-			logger.Config{
-				SlowThreshold:             time.Second,
-				LogLevel:                  logger.Info,
-				IgnoreRecordNotFoundError: true,
-				Colorful:                  true,
-			},
-		)
-	}
+var db *sql.DB
+
+func InitializeDB(path string, _ bool) error {
 	var err error
-	connection, err = gorm.Open(sqlite.Open(path), &config)
+	db, err = sql.Open("sqlite", path)
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %s", err)
 	}
 
-	// Migrate the schema
-	err = connection.AutoMigrate(&Patient{}, &Procedure{}, &Setting{})
+	// Create tables
+	createTablesSQL := `
+    CREATE TABLE IF NOT EXISTS patients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        name TEXT,
+        gender TEXT,
+        birth_date TEXT,
+        chip_id TEXT,
+        weight REAL,
+        castrated NUMERIC,
+        last_modified TEXT,
+        note TEXT,
+        owner TEXT,
+        owner_phone TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        deleted_at DATETIME
+    );
+
+    CREATE TABLE IF NOT EXISTS procedures (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        date TEXT,
+        details TEXT,
+        patient_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        deleted_at DATETIME,
+        FOREIGN KEY(patient_id) REFERENCES patients(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        value TEXT,
+        type TEXT,
+        idx INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        deleted_at DATETIME
+    );
+    `
+	_, err = db.Exec(createTablesSQL)
 	if err != nil {
-		return fmt.Errorf("failed to migrate db: %s", err)
+		return fmt.Errorf("failed to create tables: %s", err)
 	}
 
 	return nil
 }
 
 func GetPatient(id string) (patient Patient, err error) {
-	result := connection.Preload("Procedures").First(&patient, "id = ?", id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	query := `SELECT id, type, name, gender, birth_date, chip_id, weight, castrated, last_modified, note, owner, owner_phone, created_at, updated_at, deleted_at FROM patients WHERE id = ?`
+	row := db.QueryRow(query, id)
+	err = row.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.Gender, &patient.BirthDate, &patient.ChipId, &patient.Weight, &patient.Castrated, &patient.LastModified, &patient.Note, &patient.Owner, &patient.OwnerPhone, &patient.CreatedAt, &patient.UpdatedAt, &patient.DeletedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
 			err = fmt.Errorf("patient with Id %s not found", id)
 		} else {
-			err = fmt.Errorf("Database error")
+			err = fmt.Errorf("database error: %s", err)
 		}
+		return
 	}
+
+	// Load procedures
+	query = `SELECT id, type, date, details, patient_id, created_at, updated_at, deleted_at FROM procedures WHERE patient_id = ?`
+	rows, err := db.Query(query, id)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var procedure Procedure
+		err = rows.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID, &procedure.CreatedAt, &procedure.UpdatedAt, &procedure.DeletedAt)
+		if err != nil {
+			return
+		}
+		patient.Procedures = append(patient.Procedures, procedure)
+	}
+
 	return
 }
 
 func GetProcedure(id string) (procedure Procedure, err error) {
-	result := connection.First(&procedure, "id = ?", id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	query := `SELECT id, type, date, details, patient_id, created_at, updated_at, deleted_at FROM procedures WHERE id = ?`
+	row := db.QueryRow(query, id)
+	err = row.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID, &procedure.CreatedAt, &procedure.UpdatedAt, &procedure.DeletedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
 			err = fmt.Errorf("procedure with Id %s not found", id)
 		} else {
-			err = fmt.Errorf("Database error")
+			err = fmt.Errorf("database error: %s", err)
 		}
 	}
 	return
 }
 
-func GetPatientList() []Patient {
+func GetPatientList() ([]Patient, error) {
+	query := `SELECT id, type, name, chip_id, owner, owner_phone FROM patients`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	var patients []Patient
-	connection.Select("Id", "Type", "Name", "ChipId", "Owner", "OwnerPhone").Find(&patients)
-	return patients
-}
-
-func CreatePatient(patient *Patient) (err error) {
-	if err = connection.Create(patient).Error; err != nil {
-		err = fmt.Errorf("failed to update patient: %s", err)
+	for rows.Next() {
+		var patient Patient
+		err = rows.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.ChipId, &patient.Owner, &patient.OwnerPhone)
+		if err != nil {
+			return nil, err
+		}
+		patients = append(patients, patient)
 	}
-	return
+	return patients, nil
 }
 
-func UpdatePatient(id uint, changes *Patient) (err error) {
-	patient := Patient{Model: gorm.Model{ID: id}}
-	if err = connection.Model(&patient).Updates(changes).Error; err != nil {
-		err = fmt.Errorf("failed to update patient: %w", err)
+func CreatePatient(patient *Patient) error {
+	query := `INSERT INTO patients (type, name, gender, birth_date, chip_id, weight, castrated, last_modified, note, owner, owner_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	result, err := db.Exec(query, patient.Type, patient.Name, patient.Gender, patient.BirthDate, patient.ChipId, patient.Weight, patient.Castrated, patient.LastModified, patient.Note, patient.Owner, patient.OwnerPhone)
+	if err != nil {
+		return fmt.Errorf("failed to create patient: %s", err)
 	}
-	return
-}
-
-func DeletePatient(patientId string) (err error) {
-	if err = connection.Delete(&Patient{}, patientId).Error; err != nil {
-		err = fmt.Errorf("failed to delete patient: %s", err)
+	// Get the ID of the newly inserted record
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve last insert ID: %s", err)
 	}
-	return
+	patient.ID = id
+	return nil
 }
 
-func CreateProcedure(procedure *Procedure) (err error) {
-	if err = connection.Create(procedure).Error; err != nil {
-		err = fmt.Errorf("failed to update procedure: %s", err)
+func UpdatePatient(id int64, changes *Patient) error {
+	query := `UPDATE patients SET type = ?, name = ?, gender = ?, birth_date = ?, chip_id = ?, weight = ?, castrated = ?, last_modified = ?, note = ?, owner = ?, owner_phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+	_, err := db.Exec(query, changes.Type, changes.Name, changes.Gender, changes.BirthDate, changes.ChipId, changes.Weight, changes.Castrated, changes.LastModified, changes.Note, changes.Owner, changes.OwnerPhone, id)
+	if err != nil {
+		return fmt.Errorf("failed to update patient: %s", err)
 	}
-	return
+	return nil
 }
 
-func UpdateProcedure(id uint, changes *Procedure) (err error) {
-	procedure := Procedure{Model: gorm.Model{ID: id}}
-	if err = connection.Model(&procedure).Updates(changes).Error; err != nil {
-		err = fmt.Errorf("failed to update procedure: %w", err)
+func DeletePatient(patientId string) error {
+	query := `DELETE FROM patients WHERE id = ?`
+	_, err := db.Exec(query, patientId)
+	if err != nil {
+		return fmt.Errorf("failed to delete patient: %s", err)
 	}
-	return
+	return nil
 }
 
-func DeleteProcedure(procedureId string) (err error) {
-	if err = connection.Delete(&Procedure{}, procedureId).Error; err != nil {
-		err = fmt.Errorf("failed to delete procedure: %s", err)
+func CreateProcedure(procedure *Procedure) error {
+	query := `INSERT INTO procedures (type, date, details, patient_id) VALUES (?, ?, ?, ?)`
+	result, err := db.Exec(query, procedure.Type, procedure.Date, procedure.Details, procedure.PatientID)
+	if err != nil {
+		return fmt.Errorf("failed to create procedure: %s", err)
 	}
-	return
+
+	// Get the ID of the newly inserted record
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve last insert ID: %s", err)
+	}
+	procedure.ID = id
+	return nil
 }
 
-func GetPatientTypes() (settings []Setting, err error) {
-	err = connection.Model(Setting{}).Where("type = ?", PatientType).Order("idx").Find(&settings).Error
-	return
+func UpdateProcedure(id int64, changes *Procedure) error {
+	query := `UPDATE procedures SET type = ?, date = ?, details = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+	_, err := db.Exec(query, changes.Type, changes.Date, changes.Details, id)
+	if err != nil {
+		return fmt.Errorf("failed to update procedure: %s", err)
+	}
+	return nil
 }
 
-func GetProcedureTypes() (settings []Setting, err error) {
-	err = connection.Model(Setting{}).Where("type = ?", ProcedureType).Order("idx").Find(&settings).Error
-	return
+func DeleteProcedure(procedureId string) error {
+	query := `DELETE FROM procedures WHERE id = ?`
+	_, err := db.Exec(query, procedureId)
+	if err != nil {
+		return fmt.Errorf("failed to delete procedure: %s", err)
+	}
+	return nil
+}
+
+func GetPatientTypes() ([]Setting, error) {
+	query := `SELECT id, value, type, idx, created_at, updated_at, deleted_at FROM settings WHERE type = ? ORDER BY idx`
+	rows, err := db.Query(query, PatientType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var settings []Setting
+	for rows.Next() {
+		var setting Setting
+		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Idx, &setting.CreatedAt, &setting.UpdatedAt, &setting.DeletedAt)
+		if err != nil {
+			return nil, err
+		}
+		settings = append(settings, setting)
+	}
+	return settings, nil
+}
+
+func GetProcedureTypes() ([]Setting, error) {
+	query := `SELECT id, value, type, idx, created_at, updated_at, deleted_at FROM settings WHERE type = ? ORDER BY idx`
+	rows, err := db.Query(query, ProcedureType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var settings []Setting
+	for rows.Next() {
+		var setting Setting
+		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Idx, &setting.CreatedAt, &setting.UpdatedAt, &setting.DeletedAt)
+		if err != nil {
+			return nil, err
+		}
+		settings = append(settings, setting)
+	}
+	return settings, nil
 }
 
 func UpdateSetting(setting Setting) error {
-	return connection.Save(&setting).Error
+	query := `INSERT INTO settings (value, type, idx) VALUES (?, ?, ?)`
+	_, err := db.Exec(query, setting.Value, setting.Type, setting.Idx, setting.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update setting: %s", err)
+	}
+	return nil
 }
 
-func DeleteSetting(settingId string) (err error) {
-	if err = connection.Delete(&Setting{}, settingId).Error; err != nil {
-		err = fmt.Errorf("failed to delete setting: %s", err)
+func DeleteSetting(settingId string) error {
+	query := `DELETE FROM settings WHERE id = ?`
+	_, err := db.Exec(query, settingId)
+	if err != nil {
+		return fmt.Errorf("failed to delete setting: %s", err)
 	}
-	return
+	return nil
 }

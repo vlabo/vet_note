@@ -7,11 +7,11 @@ import (
 )
 
 type ViewProcedure struct {
-	ID        *uint   `json:"id"`
+	ID        *int64  `json:"id"`
 	Type      *string `json:"type"`
 	Date      *string `json:"date"`
 	Details   *string `json:"details"`
-	PatientID uint    `json:"patientId"`
+	PatientID int64   `json:"patientId"`
 }
 
 func (vp *ViewProcedure) asProcedure() db.Procedure {
@@ -41,7 +41,7 @@ func (vp *ViewProcedure) fromProcedure(procedure db.Procedure) {
 }
 
 type ViewListPatient struct {
-	ID     uint   `json:"id"`
+	ID     int64  `json:"id"`
 	Type   string `json:"type"`
 	Name   string `json:"name"`
 	ChipId string `json:"chipId"`
@@ -60,7 +60,7 @@ func (vlp *ViewListPatient) fromPatient(patient db.Patient) {
 }
 
 type ViewPatient struct {
-	ID           *uint            `json:"id"`
+	ID           *int64           `json:"id"`
 	Type         *string          `json:"type"`
 	Name         *string          `json:"name"`
 	Gender       *string          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
@@ -148,7 +148,7 @@ func (vp *ViewPatient) fromPatient(patient db.Patient) {
 }
 
 type ViewSetting struct {
-	ID    *uint          `json:"id"`
+	ID    *int64         `json:"id"`
 	Type  db.SettingType `json:"type" tstype:"'PatientType' | 'ProcedureType'"`
 	Value string         `json:"value"`
 	Index uint           `json:"index"`

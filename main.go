@@ -15,7 +15,10 @@ import (
 )
 
 func getPatientList(c echo.Context) error {
-	patients := db.GetPatientList()
+	patients, err := db.GetPatientList()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, FmtError(err.Error()))
+	}
 
 	view := make([]ViewListPatient, 0)
 	for _, p := range patients {

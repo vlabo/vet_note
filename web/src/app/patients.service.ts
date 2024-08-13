@@ -4,6 +4,7 @@ import { catchError, Observable, Subject, throwError } from 'rxjs';
 import { ViewListPatient, ViewPatient, ViewProcedure, ViewSetting } from 'src/app/types';
 import { ServerURL } from 'src/environments/environment';
 import { AuthService } from './auth.service';
+import { ErrorHandlerService } from './error-handler.service';
 
 
 @Injectable({
@@ -12,13 +13,12 @@ import { AuthService } from './auth.service';
 export class PatientsService {
   private patientListSubject: Subject<ViewListPatient[]> = new Subject();
 
-  constructor(private http: HttpClient, private authService: AuthService) {
-    this.handleError = this.handleError.bind(this);
+  constructor(private http: HttpClient, private authService: AuthService, private errorHandlerService: ErrorHandlerService) {
   }
 
   // Main list
   public triggerPatientListReload() {
-    this.http.get<ViewListPatient[]>(`${ServerURL}/patient-list`).pipe(catchError(this.handleError)).subscribe({
+    this.http.get<ViewListPatient[]>(`${ServerURL}/patient-list`).pipe(catchError(this.errorHandlerService.handleError)).subscribe({
       next: patientsList => {
         this.patientListSubject.next(patientsList);
       }
@@ -31,51 +31,51 @@ export class PatientsService {
 
   // Patient
   public getPatient(key: string): Observable<ViewPatient> {
-    return this.http.get<ViewPatient>(`${ServerURL}/patient/` + key).pipe(catchError(this.handleError));
+    return this.http.get<ViewPatient>(`${ServerURL}/patient/` + key).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public updatePatient(view: ViewPatient): Observable<ViewPatient> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post<ViewPatient>(`${ServerURL}/patient`, view, { headers }).pipe(catchError(this.handleError));
+    return this.http.post<ViewPatient>(`${ServerURL}/patient`, view, { headers }).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public deletePatient(id: number) {
-    return this.http.delete(`${ServerURL}/patient/${id}`).pipe(catchError(this.handleError));
+    return this.http.delete(`${ServerURL}/patient/${id}`).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   // Procedure
   public getProcedure(key: string): Observable<ViewProcedure> {
-    return this.http.get<ViewProcedure>(`${ServerURL}/procedure/` + key).pipe(catchError(this.handleError));
+    return this.http.get<ViewProcedure>(`${ServerURL}/procedure/` + key).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public updateProcedure(procedure: ViewProcedure) {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post<ViewProcedure>(`${ServerURL}/procedure`, procedure, { headers }).pipe(catchError(this.handleError));
+    return this.http.post<ViewProcedure>(`${ServerURL}/procedure`, procedure, { headers }).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public deleteProcedure(id: number) {
-    return this.http.delete(`${ServerURL}/procedure/` + id).pipe(catchError(this.handleError));
+    return this.http.delete(`${ServerURL}/procedure/` + id).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   // Settings
   public getPatientTypes(): Observable<ViewSetting[]> {
-    return this.http.get<ViewSetting[]>(`${ServerURL}/patient-types`).pipe(catchError(this.handleError));
+    return this.http.get<ViewSetting[]>(`${ServerURL}/patient-types`).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public getProcedureTypes(): Observable<ViewSetting[]> {
-    return this.http.get<ViewSetting[]>(`${ServerURL}/procedure-types`).pipe(catchError(this.handleError));
+    return this.http.get<ViewSetting[]>(`${ServerURL}/procedure-types`).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public updateSettings(settings: ViewSetting[]): Observable<void> {
-    return this.http.post<void>(`${ServerURL}/settings`, settings).pipe(catchError(this.handleError));
+    return this.http.post<void>(`${ServerURL}/settings`, settings).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public updateSetting(setting: ViewSetting): Observable<void> {
-    return this.http.post<void>(`${ServerURL}/setting`, setting).pipe(catchError(this.handleError));
+    return this.http.post<void>(`${ServerURL}/setting`, setting).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   public deleteSetting(setting: ViewSetting): Observable<any> {
-    return this.http.delete(`${ServerURL}/setting/` + setting.id).pipe(catchError(this.handleError));
+    return this.http.delete(`${ServerURL}/setting/` + setting.id).pipe(catchError(this.errorHandlerService.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

@@ -1,5 +1,5 @@
 packages:
-  - path: "vet_note"
+  - path: "vet_note/db"
     output_path: "web/src/app/types.ts"
     type_mappings:
       time.Time: "string /* RFC3339 */"

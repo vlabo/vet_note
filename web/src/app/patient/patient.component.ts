@@ -108,9 +108,13 @@ export class PatientComponent implements OnInit, OnDestroy {
     if (this.patient && this.patient.note !== this.originalNote) {
       let patient: ViewPatient = {
         id: this.patient.id,
-        note: this.patient.note
+        note: this.patient.note,
       }
-      this.patientService.updatePatient(patient).subscribe({});
+      this.patientService.updatePatient(patient).subscribe({
+        next: _ => {
+          this.patientService.triggerPatientListReload();
+        }
+      });
       this.originalNote = this.patient.note || "";
     }
   }
@@ -124,7 +128,10 @@ export class PatientComponent implements OnInit, OnDestroy {
   }
 
   getAge(): string {
-    let date = new Date(this.patient!.birthDate!);
+    if(!this.patient || !this.patient.birthDate) {
+      return "-";
+    }
+    let date = new Date(this.patient.birthDate);
     // Check if the birth date is valid
     if (isNaN(date.getTime())) {
       return "-";

@@ -56,28 +56,24 @@ export class EditPatientComponent implements OnInit {
       next: patient => {
         if (this.newMode) {
           this.newMode = false;
+          this.patientsService.triggerPatientListReload();
           this.router.navigate(["/patient", patient.id], { replaceUrl: true })
           this.patient = patient;
         } else {
+          this.patientsService.triggerPatientListReload();
           this.location.back();
         }
       },
       error: error => {
         console.error('Error updating patient:', error);
       }
-    }
-    );
+    });
   }
 
   cancel(): void {
     this.location.back();
   }
 
-  /**
-   * Checks if a given string is a valid date.
-   * @param dateString - The date string to check.
-   * @returns True if the string is a valid date, false otherwise.
-   */
   isValidDate(dateString: string): boolean {
     try {
       const date = new Date(dateString);

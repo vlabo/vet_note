@@ -31,7 +31,6 @@ export class ProcedureComponent implements OnInit {
     addIcons({ "arrow-back": arrowBack })
 
     this.originalProcedure = {
-      date: new Date().toISOString(),
       patientId: 0,
     };
     this.procedure = {

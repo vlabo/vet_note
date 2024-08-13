@@ -3,40 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"time"
+	"log/slog"
 
 	_ "modernc.org/sqlite"
 )
-
-type Procedure struct {
-	ID        int64
-	Type      string
-	Date      string
-	Details   string
-	PatientID int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-}
-
-type Patient struct {
-	ID           int64
-	Type         string
-	Name         string
-	Gender       string
-	BirthDate    string
-	ChipId       string
-	Weight       float64
-	Castrated    bool
-	LastModified string
-	Note         string
-	Owner        string
-	OwnerPhone   string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    sql.NullTime
-	Procedures   []Procedure
-}
 
 type SettingType string
 
@@ -44,16 +14,6 @@ const (
 	PatientType   SettingType = "PatientType"
 	ProcedureType SettingType = "ProcedureType"
 )
-
-type Setting struct {
-	ID        int64
-	Value     string
-	Type      SettingType
-	Idx       uint
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-}
 
 var db *sql.DB
 
@@ -74,8 +34,7 @@ func InitializeDB(path string, _ bool) error {
         birth_date TEXT,
         chip_id TEXT,
         weight REAL,
-        castrated NUMERIC,
-        last_modified TEXT,
+        castrated NUMERIC DEFAULT 0,
         note TEXT,
         owner TEXT,
         owner_phone TEXT,
@@ -114,10 +73,11 @@ func InitializeDB(path string, _ bool) error {
 	return nil
 }
 
-func GetPatient(id string) (patient Patient, err error) {
-	query := `SELECT id, type, name, gender, birth_date, chip_id, weight, castrated, last_modified, note, owner, owner_phone, created_at, updated_at, deleted_at FROM patients WHERE id = ?`
+func GetPatient(id string) (patient ViewPatient, err error) {
+	slog.Info("GetPatient", "id", id)
+	query := `SELECT id, type, name, gender, birth_date, chip_id, weight, castrated, note, owner, owner_phone FROM patients WHERE id = ?`
 	row := db.QueryRow(query, id)
-	err = row.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.Gender, &patient.BirthDate, &patient.ChipId, &patient.Weight, &patient.Castrated, &patient.LastModified, &patient.Note, &patient.Owner, &patient.OwnerPhone, &patient.CreatedAt, &patient.UpdatedAt, &patient.DeletedAt)
+	err = row.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.Gender, &patient.BirthDate, &patient.ChipId, &patient.Weight, &patient.Castrated, &patient.Note, &patient.Owner, &patient.OwnerPhone)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("patient with Id %s not found", id)
@@ -128,7 +88,7 @@ func GetPatient(id string) (patient Patient, err error) {
 	}
 
 	// Load procedures
-	query = `SELECT id, type, date, details, patient_id, created_at, updated_at, deleted_at FROM procedures WHERE patient_id = ?`
+	query = `SELECT id, type, date, details, patient_id FROM procedures WHERE patient_id = ?`
 	rows, err := db.Query(query, id)
 	if err != nil {
 		return
@@ -136,21 +96,22 @@ func GetPatient(id string) (patient Patient, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var procedure Procedure
-		err = rows.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID, &procedure.CreatedAt, &procedure.UpdatedAt, &procedure.DeletedAt)
+		var procedure ViewProcedure
+		err = rows.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID)
 		if err != nil {
 			return
 		}
-		patient.Procedures = append(patient.Procedures, procedure)
+		*patient.Procedures = append(*patient.Procedures, procedure)
 	}
 
 	return
 }
 
-func GetProcedure(id string) (procedure Procedure, err error) {
-	query := `SELECT id, type, date, details, patient_id, created_at, updated_at, deleted_at FROM procedures WHERE id = ?`
+func GetProcedure(id string) (procedure ViewProcedure, err error) {
+	slog.Info("GetProcedure", "id", id)
+	query := `SELECT id, type, date, details, patient_id FROM procedures WHERE id = ?`
 	row := db.QueryRow(query, id)
-	err = row.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID, &procedure.CreatedAt, &procedure.UpdatedAt, &procedure.DeletedAt)
+	err = row.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("procedure with Id %s not found", id)
@@ -161,17 +122,17 @@ func GetProcedure(id string) (procedure Procedure, err error) {
 	return
 }
 
-func GetPatientList() ([]Patient, error) {
-	query := `SELECT id, type, name, chip_id, owner, owner_phone FROM patients`
+func GetPatientList() ([]ViewPatient, error) {
+	query := `SELECT id, type, name, chip_id, owner, owner_phone FROM patients ORDER BY updated_at DESC`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var patients []Patient
+	var patients []ViewPatient
 	for rows.Next() {
-		var patient Patient
+		var patient ViewPatient
 		err = rows.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.ChipId, &patient.Owner, &patient.OwnerPhone)
 		if err != nil {
 			return nil, err
@@ -181,9 +142,10 @@ func GetPatientList() ([]Patient, error) {
 	return patients, nil
 }
 
-func CreatePatient(patient *Patient) error {
-	query := `INSERT INTO patients (type, name, gender, birth_date, chip_id, weight, castrated, last_modified, note, owner, owner_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	result, err := db.Exec(query, patient.Type, patient.Name, patient.Gender, patient.BirthDate, patient.ChipId, patient.Weight, patient.Castrated, patient.LastModified, patient.Note, patient.Owner, patient.OwnerPhone)
+func CreatePatient(patient *ViewPatient) error {
+	slog.Info("CreatePatient", "patient", patient)
+	query := `INSERT INTO patients (type, name, gender, birth_date, chip_id, weight, castrated, note, owner, owner_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	result, err := db.Exec(query, patient.Type, patient.Name, patient.Gender, patient.BirthDate, patient.ChipId, patient.Weight, patient.Castrated, patient.Note, patient.Owner, patient.OwnerPhone)
 	if err != nil {
 		return fmt.Errorf("failed to create patient: %s", err)
 	}
@@ -192,13 +154,65 @@ func CreatePatient(patient *Patient) error {
 	if err != nil {
 		return fmt.Errorf("failed to retrieve last insert ID: %s", err)
 	}
-	patient.ID = id
+	patient.ID = &id
 	return nil
 }
 
-func UpdatePatient(id int64, changes *Patient) error {
-	query := `UPDATE patients SET type = ?, name = ?, gender = ?, birth_date = ?, chip_id = ?, weight = ?, castrated = ?, last_modified = ?, note = ?, owner = ?, owner_phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-	_, err := db.Exec(query, changes.Type, changes.Name, changes.Gender, changes.BirthDate, changes.ChipId, changes.Weight, changes.Castrated, changes.LastModified, changes.Note, changes.Owner, changes.OwnerPhone, id)
+func UpdatePatient(id int64, changes *ViewPatient) error {
+	slog.Info("UpdatePatient", "id", id, "changes", changes)
+
+	// Initialize the base query and parameters slice
+	query := "UPDATE patients SET "
+	params := []interface{}{}
+
+	// Dynamically build the query based on non-null fields
+	if changes.Type != nil {
+		query += "type = ?, "
+		params = append(params, *changes.Type)
+	}
+	if changes.Name != nil {
+		query += "name = ?, "
+		params = append(params, *changes.Name)
+	}
+	if changes.Gender != nil {
+		query += "gender = ?, "
+		params = append(params, *changes.Gender)
+	}
+	if changes.BirthDate != nil {
+		query += "birth_date = ?, "
+		params = append(params, *changes.BirthDate)
+	}
+	if changes.ChipId != nil {
+		query += "chip_id = ?, "
+		params = append(params, *changes.ChipId)
+	}
+	if changes.Weight != nil {
+		query += "weight = ?, "
+		params = append(params, *changes.Weight)
+	}
+	if changes.Castrated != nil {
+		query += "castrated = ?, "
+		params = append(params, *changes.Castrated)
+	}
+	if changes.Note != nil {
+		query += "note = ?, "
+		params = append(params, *changes.Note)
+	}
+	if changes.Owner != nil {
+		query += "owner = ?, "
+		params = append(params, *changes.Owner)
+	}
+	if changes.OwnerPhone != nil {
+		query += "owner_phone = ?, "
+		params = append(params, *changes.OwnerPhone)
+	}
+
+	// Add the updated_at field and the WHERE clause
+	query += "updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+	params = append(params, id)
+
+	// Execute the query
+	_, err := db.Exec(query, params...)
 	if err != nil {
 		return fmt.Errorf("failed to update patient: %s", err)
 	}
@@ -214,7 +228,8 @@ func DeletePatient(patientId string) error {
 	return nil
 }
 
-func CreateProcedure(procedure *Procedure) error {
+func CreateProcedure(procedure *ViewProcedure) error {
+	slog.Info("CreateProcedure", "procedure", procedure)
 	query := `INSERT INTO procedures (type, date, details, patient_id) VALUES (?, ?, ?, ?)`
 	result, err := db.Exec(query, procedure.Type, procedure.Date, procedure.Details, procedure.PatientID)
 	if err != nil {
@@ -226,13 +241,37 @@ func CreateProcedure(procedure *Procedure) error {
 	if err != nil {
 		return fmt.Errorf("failed to retrieve last insert ID: %s", err)
 	}
-	procedure.ID = id
+	procedure.ID = &id
 	return nil
 }
 
-func UpdateProcedure(id int64, changes *Procedure) error {
-	query := `UPDATE procedures SET type = ?, date = ?, details = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
-	_, err := db.Exec(query, changes.Type, changes.Date, changes.Details, id)
+func UpdateProcedure(id int64, changes *ViewProcedure) error {
+	slog.Info("UpdateProcedure", "id", id, "changes", changes)
+
+	// Initialize the base query and parameters slice
+	query := "UPDATE procedures SET "
+	params := []interface{}{}
+
+	// Dynamically build the query based on non-null fields
+	if changes.Type != nil {
+		query += "type = ?, "
+		params = append(params, *changes.Type)
+	}
+	if changes.Date != nil {
+		query += "date = ?, "
+		params = append(params, *changes.Date)
+	}
+	if changes.Details != nil {
+		query += "details = ?, "
+		params = append(params, *changes.Details)
+	}
+
+	// Add the updated_at field and the WHERE clause
+	query += "updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+	params = append(params, id)
+
+	// Execute the query
+	_, err := db.Exec(query, params...)
 	if err != nil {
 		return fmt.Errorf("failed to update procedure: %s", err)
 	}
@@ -248,18 +287,18 @@ func DeleteProcedure(procedureId string) error {
 	return nil
 }
 
-func GetPatientTypes() ([]Setting, error) {
-	query := `SELECT id, value, type, idx, created_at, updated_at, deleted_at FROM settings WHERE type = ? ORDER BY idx`
+func GetPatientTypes() ([]ViewSetting, error) {
+	query := `SELECT id, value, type, idx FROM settings WHERE type = ? ORDER BY idx`
 	rows, err := db.Query(query, PatientType)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var settings []Setting
+	var settings []ViewSetting
 	for rows.Next() {
-		var setting Setting
-		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Idx, &setting.CreatedAt, &setting.UpdatedAt, &setting.DeletedAt)
+		var setting ViewSetting
+		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Index)
 		if err != nil {
 			return nil, err
 		}
@@ -268,18 +307,18 @@ func GetPatientTypes() ([]Setting, error) {
 	return settings, nil
 }
 
-func GetProcedureTypes() ([]Setting, error) {
-	query := `SELECT id, value, type, idx, created_at, updated_at, deleted_at FROM settings WHERE type = ? ORDER BY idx`
+func GetProcedureTypes() ([]ViewSetting, error) {
+	query := `SELECT id, value, type, idx FROM settings WHERE type = ? ORDER BY idx`
 	rows, err := db.Query(query, ProcedureType)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var settings []Setting
+	var settings []ViewSetting
 	for rows.Next() {
-		var setting Setting
-		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Idx, &setting.CreatedAt, &setting.UpdatedAt, &setting.DeletedAt)
+		var setting ViewSetting
+		err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Index)
 		if err != nil {
 			return nil, err
 		}
@@ -288,9 +327,19 @@ func GetProcedureTypes() ([]Setting, error) {
 	return settings, nil
 }
 
-func UpdateSetting(setting Setting) error {
+func CreateSetting(setting ViewSetting) error {
 	query := `INSERT INTO settings (value, type, idx) VALUES (?, ?, ?)`
-	_, err := db.Exec(query, setting.Value, setting.Type, setting.Idx, setting.ID)
+	_, err := db.Exec(query, setting.Value, setting.Type, setting.Index, setting.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update setting: %s", err)
+	}
+	return nil
+}
+
+func UpdateSetting(setting ViewSetting) error {
+	// TODO: make fields optional.
+	query := `UPDATE settings SET value = ?, type = ?, idx = ?`
+	_, err := db.Exec(query, setting.Value, setting.Type, setting.Index, setting.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update setting: %s", err)
 	}

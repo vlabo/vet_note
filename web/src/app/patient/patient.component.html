@@ -38,7 +38,8 @@
       </ion-col>
       <ion-col>
         <fa-icon [icon]="weight" class="ion-margin-end"></fa-icon>
-        <ion-label>{{patient.weight}}кг</ion-label>
+        <ion-label *ngIf="patient.weight">{{ patient.weight }}кг</ion-label>
+        <ion-label *ngIf="!patient.weight">-</ion-label>
       </ion-col>
     </ion-row>
     <ion-row class="ion-align-items-center">
@@ -50,7 +51,8 @@
       </ion-col>
       <ion-col>
         <fa-icon [icon]="microchip" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.chipId }}</ion-label>
+        <ion-label *ngIf="patient.chipId">{{ patient.chipId }}</ion-label>
+        <ion-label *ngIf="!patient.chipId">-</ion-label>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -58,11 +60,13 @@
     <ion-row>
       <ion-col>
         <fa-icon [icon]="user" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.owner }}</ion-label>
+        <ion-label *ngIf="patient.owner">{{ patient.owner }}</ion-label>
+        <ion-label *ngIf="!patient.owner">-</ion-label>
       </ion-col>
       <ion-col>
         <fa-icon [icon]="phone" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ patient.ownerPhone }}</ion-label>
+        <ion-label *ngIf="patient.ownerPhone">{{ patient.ownerPhone }}</ion-label>
+        <ion-label *ngIf="!patient.ownerPhone">-</ion-label>
       </ion-col>
     </ion-row>
   </ion-grid>

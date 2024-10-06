@@ -3,4 +3,4 @@
 cd web
 ionic build --prod
 cd ..
-go build .
+CGO_ENABLED=1 go build .

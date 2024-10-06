@@ -3,9 +3,9 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = []
-  bin = "./tmp/main"
-  cmd = "templ generate && go build -o ./tmp/main ."
+  bin = "./vet_note"
+  args_bin = ["-db", "asenovgrad.db", "-port", "8001", "-cors" ,"-dbLog"]
+  cmd = "just build"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []

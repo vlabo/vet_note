@@ -76,12 +76,13 @@
       </ion-button>
     </ion-item-group>
   </ion-list>
-  <ion-footer>
-    <ion-toolbar>
+  <ion-item>
+    <!-- Spacer -->
+  </ion-item>
+  <ion-list>
+    <ion-list-header>
       <ion-title>Потребител</ion-title>
-      <ion-buttons>
-        <ion-button color="danger" (click)="logout()">Излез</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-footer>
+    </ion-list-header>
+    <ion-button color="danger" expand="block" (click)="logout()">Излез</ion-button>
+  </ion-list>
 </ion-content>

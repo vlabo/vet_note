@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type SettingType string
@@ -19,7 +19,7 @@ var db *sql.DB
 
 func InitializeDB(path string, _ bool) error {
 	var err error
-	db, err = sql.Open("sqlite", path)
+	db, err = sql.Open("sqlite3", path)
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %s", err)
 	}

@@ -56,6 +56,7 @@ export class SettingsComponent implements OnInit {
 
     // Update the items array with the reordered items
     this.patientTypes = reorderedItems;
+    console.log(this.patientTypes);
     this.patientsService.updateSettings(this.patientTypes).subscribe({});
   }
 
@@ -69,6 +70,7 @@ export class SettingsComponent implements OnInit {
 
     // Update the items array with the reordered items
     this.procedureTypes = reorderedItems;
+    console.log(this.procedureTypes);
     this.patientsService.updateSettings(this.procedureTypes).subscribe({});
   }
 

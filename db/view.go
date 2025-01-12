@@ -26,7 +26,7 @@ type ViewPatient struct {
 	Type       *string          `json:"type"`
 	Name       *string          `json:"name"`
 	Gender     *string          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
-	BirthDate  *string          `json:"birthDate"`
+	Age        *int64           `json:"age"`
 	ChipId     *string          `json:"chipId"`
 	Weight     *float64         `json:"weight"`
 	Castrated  *bool            `json:"castrated"`

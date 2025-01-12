@@ -127,31 +127,6 @@ export class PatientComponent implements OnInit, OnDestroy {
     return !isNaN(date.getTime());
   }
 
-  getAge(): string {
-    if(!this.patient || !this.patient.birthDate) {
-      return "-";
-    }
-    let date = new Date(this.patient.birthDate);
-    // Check if the birth date is valid
-    if (isNaN(date.getTime())) {
-      return "-";
-    }
-    let now = new Date();
-    let years = now.getFullYear() - date.getFullYear();
-    let months = now.getMonth() - date.getMonth();
-
-    // Adjust if the month difference is negative
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    let result = years + "г";
-    if (months > 0) {
-      result += " " + months + "м"
-    }
-    return result;
-  };
-
   async presentDeleteConfirm() {
     const alert = await this.alertController.create({
       header: 'Потвърди изтриване',

@@ -32,6 +32,7 @@ func InitializeDB(path string, _ bool) error {
         name TEXT,
         gender TEXT,
         birth_date TEXT,
+        age TEXT,
         chip_id TEXT,
         weight REAL,
         castrated NUMERIC DEFAULT 0,
@@ -64,20 +65,27 @@ func InitializeDB(path string, _ bool) error {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         deleted_at DATETIME
     );
+
     `
 	_, err = db.Exec(createTablesSQL)
 	if err != nil {
 		return fmt.Errorf("failed to create tables: %s", err)
 	}
 
+	migration := `ALTER TABLE patients ADD COLUMN age TEXT;`
+
+	_, err = db.Exec(migration)
+	if err != nil {
+		slog.Warn("failed to run migration", "err", err)
+	}
 	return nil
 }
 
 func GetPatient(id string) (patient ViewPatient, err error) {
 	slog.Info("GetPatient", "id", id)
-	query := `SELECT id, type, name, gender, birth_date, chip_id, weight, castrated, note, owner, owner_phone FROM patients WHERE id = ?`
+	query := `SELECT id, type, name, gender, age, chip_id, weight, castrated, note, owner, owner_phone FROM patients WHERE id = ?`
 	row := db.QueryRow(query, id)
-	err = row.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.Gender, &patient.BirthDate, &patient.ChipId, &patient.Weight, &patient.Castrated, &patient.Note, &patient.Owner, &patient.OwnerPhone)
+	err = row.Scan(&patient.ID, &patient.Type, &patient.Name, &patient.Gender, &patient.Age, &patient.ChipId, &patient.Weight, &patient.Castrated, &patient.Note, &patient.Owner, &patient.OwnerPhone)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("patient with Id %s not found", id)
@@ -100,6 +108,10 @@ func GetPatient(id string) (patient ViewPatient, err error) {
 		err = rows.Scan(&procedure.ID, &procedure.Type, &procedure.Date, &procedure.Details, &procedure.PatientID)
 		if err != nil {
 			return
+		}
+		if patient.Procedures == nil {
+			procedures := make([]ViewProcedure, 0, 2)
+			patient.Procedures = &procedures
 		}
 		*patient.Procedures = append(*patient.Procedures, procedure)
 	}
@@ -144,8 +156,8 @@ func GetPatientList() ([]ViewPatient, error) {
 
 func CreatePatient(patient *ViewPatient) error {
 	slog.Info("CreatePatient", "patient", patient)
-	query := `INSERT INTO patients (type, name, gender, birth_date, chip_id, weight, castrated, note, owner, owner_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	result, err := db.Exec(query, patient.Type, patient.Name, patient.Gender, patient.BirthDate, patient.ChipId, patient.Weight, patient.Castrated, patient.Note, patient.Owner, patient.OwnerPhone)
+	query := `INSERT INTO patients (type, name, gender, age, chip_id, weight, castrated, note, owner, owner_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	result, err := db.Exec(query, patient.Type, patient.Name, patient.Gender, patient.Age, patient.ChipId, patient.Weight, patient.Castrated, patient.Note, patient.Owner, patient.OwnerPhone)
 	if err != nil {
 		return fmt.Errorf("failed to create patient: %s", err)
 	}
@@ -178,9 +190,9 @@ func UpdatePatient(id int64, changes *ViewPatient) error {
 		query += "gender = ?, "
 		params = append(params, *changes.Gender)
 	}
-	if changes.BirthDate != nil {
-		query += "birth_date = ?, "
-		params = append(params, *changes.BirthDate)
+	if changes.Age != nil {
+		query += "age = ?, "
+		params = append(params, *changes.Age)
 	}
 	if changes.ChipId != nil {
 		query += "chip_id = ?, "

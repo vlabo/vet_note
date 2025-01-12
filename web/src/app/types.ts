@@ -30,7 +30,7 @@ export interface ViewPatient {
   type?: string;
   name?: string;
   gender?: 'unknown' | 'male' | 'female';
-  birthDate?: string;
+  age?: number;
   chipId?: string;
   weight?: number /* float64 */;
   castrated?: boolean;

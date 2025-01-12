@@ -18,13 +18,8 @@
   <ion-grid>
     <ion-row class="ion-align-items-center">
       <ion-col>
-        <fa-icon [icon]="cake" class="ion-margin-end"></fa-icon>
-        <ion-label *ngIf="isValidDate(patient.birthDate)">{{ patient.birthDate | date: 'dd.MM.YYYY' }}</ion-label>
-        <ion-label *ngIf="!isValidDate(patient.birthDate)">-</ion-label>
-      </ion-col>
-      <ion-col>
         <fa-icon [icon]="calendar" class="ion-margin-end"></fa-icon>
-        <ion-label>{{ getAge() }}</ion-label>
+        <ion-label>{{ patient.age }}</ion-label>
       </ion-col>
     </ion-row>
     <ion-row class="ion-align-items-center">
@@ -70,8 +65,8 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionInput)="updateNote()" debounce="500" placeholder="Бележка"
-    autoGrow="true"></ion-textarea>
+  <ion-textarea class="note-text" [(ngModel)]="patient.note" (ionInput)="updateNote()" debounce="500"
+    placeholder="Бележка" autoGrow="true"></ion-textarea>
   <ion-item>
     <ion-title>История</ion-title>
   </ion-item>

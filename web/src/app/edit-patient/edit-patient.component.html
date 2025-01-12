@@ -35,8 +35,8 @@
       <ion-toggle position="stacked" [(ngModel)]="patient.castrated">Кастриранo</ion-toggle>
     </ion-item>
     <ion-item>
-      <ion-label>Дата на раждане</ion-label>
-      <datepicker [(value)]="patient.birthDate"></datepicker>
+      <ion-label position="stacked">Възраст (години)</ion-label>
+      <ion-input [(ngModel)]="patient.age" type="number" inputmode="numeric" placeholder="0"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="stacked">Име на собственик</ion-label>

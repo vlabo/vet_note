@@ -9,23 +9,23 @@
       <ion-title *ngIf="mode == 'view'"> Процедура</ion-title>
       <ion-title *ngIf="mode == 'edit'">Редактиране на Процедура</ion-title>
       <ion-title *ngIf="mode == 'new'">Нова Процедура</ion-title>
-      <ion-button slot="end" fill="clear" color="danger" (click)="presentDeleteConfirm()" *ngIf="mode == 'view'">Изтрий</ion-button>
+      <ion-button slot="end" fill="clear" color="danger" (click)="presentDeleteConfirm()"
+        *ngIf="mode == 'view'">Изтрий</ion-button>
       <ion-button slot="end" fill="clear" (click)="enableEditMode()" *ngIf="mode == 'view'">Редактирай</ion-button>
     </ion-toolbar>
   </ion-header>
   <form>
     <ion-item>
       <ion-label *ngIf="mode == 'view'">{{ procedure.type }}</ion-label>
-      <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" interface="popover" *ngIf="mode != 'view'">
+      <ion-select id="procedureType" [(ngModel)]="procedure.type" name="type" interface="popover"
+        *ngIf="mode != 'view'">
         <ion-select-option *ngFor="let type of procedureTypes" [value]="type">{{ type }}</ion-select-option>
       </ion-select>
       <datepicker [(value)]="procedure.date" [disabled]="mode == 'view'"></datepicker>
     </ion-item>
 
-    <ion-textarea [(ngModel)]="procedure.details" name="details" placeholder="Описание" autoGrow="true" *ngIf="mode != 'view'"></ion-textarea>
-    <ion-label *ngIf="mode == 'view'">
-      <pre>{{ procedure.details }}</pre>
-    </ion-label>
+    <ion-textarea [(ngModel)]="procedure.details" name="details" placeholder="Описание" autoGrow="true"
+      (readonly)="mode == 'view'"></ion-textarea>
     <ion-row *ngIf="mode != 'view'">
       <ion-col>
         <ion-button expand="block" (click)="saveProcedure()">Запиши</ion-button>

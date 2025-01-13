@@ -44,19 +44,19 @@ func updatePatient(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
 	}
 
-	if viewPatient.ID == nil {
-		// New entry
-		err := db.CreatePatient(&viewPatient)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
-		}
-	} else {
-		// Update entry
-		err := db.UpdatePatient(*viewPatient.ID, &viewPatient)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
-		}
-	}
+	// if viewPatient.ID == nil {
+	// 	// New entry
+	// 	err := db.CreatePatient(&viewPatient)
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
+	// 	}
+	// } else {
+	// 	// Update entry
+	// 	err := db.UpdatePatient(*viewPatient.ID, &viewPatient)
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
+	// 	}
+	// }
 
 	return c.JSON(http.StatusOK, viewPatient)
 }
@@ -88,19 +88,19 @@ func updateProcedure(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
 	}
 
-	if viewProcedure.ID == nil {
-		// New procedure
-		err := db.CreateProcedure(&viewProcedure)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
-		}
-	} else {
-		// Update procedure
-		err := db.UpdateProcedure(*viewProcedure.ID, &viewProcedure)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
-		}
-	}
+	// if viewProcedure.ID == nil {
+	// 	// New procedure
+	// 	err := db.CreateProcedure(&viewProcedure)
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
+	// 	}
+	// } else {
+	// 	// Update procedure
+	// 	err := db.UpdateProcedure(*viewProcedure.ID, &viewProcedure)
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
+	// 	}
+	// }
 
 	return c.JSON(http.StatusOK, viewProcedure)
 }

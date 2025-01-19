@@ -8,7 +8,6 @@ require (
 	github.com/aarondl/opt v0.0.0-20240623220848-083f18ab9536
 	github.com/jaswdr/faker/v2 v2.3.3
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/shopspring/decimal v1.4.0
 	github.com/stephenafamo/bob v0.29.0
 	modernc.org/sqlite v1.34.4

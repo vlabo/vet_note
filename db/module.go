@@ -11,7 +11,7 @@ import (
 	"vet_note/db/models"
 
 	"github.com/aarondl/opt/omitnull"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	"github.com/shopspring/decimal"
 	"github.com/stephenafamo/bob"
 )
@@ -30,7 +30,7 @@ var sqlScheme string
 
 func InitializeDB(path string, _ bool) error {
 	var err error
-	db, err = bob.Open("sqlite3", path)
+	db, err = bob.Open("sqlite", path)
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %s", err)
 	}

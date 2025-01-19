@@ -39,7 +39,6 @@ func getPatient(c echo.Context) error {
 func updatePatient(c echo.Context) error {
 	var viewPatient db.ViewPatient
 
-
 	// Bind the request body to the patient struct
 	if err := c.Bind(&viewPatient); err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))

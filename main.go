@@ -27,6 +27,7 @@ func getPatient(c echo.Context) error {
 	// Get the patientId from the URL parameter
 	id := c.Param("patientId")
 
+
 	patient, err := db.GetPatient(id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))

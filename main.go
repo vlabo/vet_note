@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"vet_note/db"
-	"vet_note/db/models"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -39,7 +38,7 @@ func getPatient(c echo.Context) error {
 }
 
 func updatePatient(c echo.Context) error {
-	var viewPatient models.PatientSetter
+	var viewPatient db.ViewPatient
 
 	// Bind the request body to the patient struct
 	if err := c.Bind(&viewPatient); err != nil {
@@ -48,13 +47,13 @@ func updatePatient(c echo.Context) error {
 
 	if _, ok := viewPatient.ID.Get(); ok {
 		// Update entry
-		err := db.UpdatePatient(viewPatient)
+		err := db.UpdatePatient(viewPatient.AsSetter())
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		// New entry
-		err := db.CreatePatient(viewPatient)
+		err := db.CreatePatient(viewPatient.AsSetter())
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
@@ -87,7 +86,7 @@ func getProcedure(c echo.Context) error {
 }
 
 func updateProcedure(c echo.Context) error {
-	var viewProcedure models.ProcedureSetter
+	var viewProcedure db.ViewProcedure
 
 	// Bind the request body to the procedure struct
 	if err := c.Bind(&viewProcedure); err != nil {
@@ -96,13 +95,13 @@ func updateProcedure(c echo.Context) error {
 
 	if _, ok := viewProcedure.ID.Get(); ok {
 		// Update entry
-		err := db.UpdateProcedure(viewProcedure)
+		err := db.UpdateProcedure(viewProcedure.AsSetter())
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		// New entry
-		err := db.CreateProcedure(viewProcedure)
+		err := db.CreateProcedure(viewProcedure.AsSetter())
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}

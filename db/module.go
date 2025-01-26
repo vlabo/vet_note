@@ -55,20 +55,7 @@ func GetPatient(id string) (patient ViewPatient, err error) {
 		return
 	}
 
-	patient = ViewPatient{
-		ID:         dbPatient.ID,
-		Type:       dbPatient.Type.GetOrZero(),
-		Name:       dbPatient.Name.GetOrZero(),
-		Gender:     dbPatient.Gender.GetOrZero(),
-		Age:        dbPatient.Age.GetOrZero().String(),
-		ChipID:     dbPatient.ChipID.GetOrZero(),
-		Weight:     dbPatient.Weight.GetOrZero(),
-		Castrated:  !dbPatient.Castrated.GetOrZero().IsZero(),
-		Note:       dbPatient.Note.GetOrZero(),
-		Owner:      dbPatient.Owner.GetOrZero(),
-		OwnerPhone: dbPatient.OwnerPhone.GetOrZero(),
-		Procedures: make([]ViewProcedure, 0, 2),
-	}
+	patient = ViewPatientFromModel(dbPatient)
 
 	procedures, err := dbPatient.Procedures().All(context.Background(), db)
 	if err != nil {
@@ -76,14 +63,7 @@ func GetPatient(id string) (patient ViewPatient, err error) {
 	}
 
 	for _, proc := range procedures {
-		procedure := ViewProcedure{
-			ID:        proc.ID,
-			Type:      proc.Type.GetOrZero(),
-			Date:      proc.Date.GetOrZero(),
-			Details:   proc.Details.GetOrZero(),
-			PatientID: idInt,
-		}
-		patient.Procedures = append(patient.Procedures, procedure)
+		patient.Procedures = append(patient.Procedures, ViewProcedureFromModel(proc))
 	}
 
 	return
@@ -95,34 +75,20 @@ func GetProcedure(id string) (procedure ViewProcedure, err error) {
 		return
 	}
 	dbProcedure, err := models.FindProcedure(context.Background(), db, int32(idInt))
-	procedure = ViewProcedure{
-		ID:        dbProcedure.ID,
-		Type:      dbProcedure.Type.GetOrZero(),
-		Date:      dbProcedure.Date.GetOrZero(),
-		Details:   dbProcedure.Details.GetOrZero(),
-		PatientID: int64(dbProcedure.PatientID.GetOrZero()),
-	}
+	procedure = ViewProcedureFromModel(dbProcedure)
 
 	return
 }
 
-func GetPatientList() ([]ViewListPatient, error) {
+func GetPatientList() ([]ViewPatient, error) {
 	dbPatients, err := models.Patients.Query().All(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}
 
-	var patients []ViewListPatient
+	var patients []ViewPatient
 	for _, p := range dbPatients {
-		patient := ViewListPatient{
-			ID:     p.ID,
-			Type:   p.Type.GetOrZero(),
-			Name:   p.Name.GetOrZero(),
-			ChipId: p.ChipID.GetOrZero(),
-			Owner:  p.Owner.GetOrZero(),
-			Phone:  p.OwnerPhone.GetOrZero(),
-		}
-		patients = append(patients, patient)
+		patients = append(patients, ViewPatientFromModel(p))
 	}
 
 	return patients, nil
@@ -204,12 +170,7 @@ func GetPatientTypes() ([]ViewSetting, error) {
 	settings := make([]ViewSetting, 0, len(dbSettings))
 
 	for _, s := range dbSettings {
-		settings = append(settings, ViewSetting{
-			ID:    s.ID,
-			Type:  PatientType,
-			Value: s.Value.GetOrZero(),
-			Index: s.Idx.GetOrZero(),
-		})
+		settings = append(settings, ViewSettingFromModel(s))
 	}
 
 	return settings, nil
@@ -224,39 +185,22 @@ func GetProcedureTypes() ([]ViewSetting, error) {
 	settings := make([]ViewSetting, 0, len(dbSettings))
 
 	for _, s := range dbSettings {
-		settings = append(settings, ViewSetting{
-			ID:    s.ID,
-			Type:  ProcedureType,
-			Value: s.Value.GetOrZero(),
-			Index: s.Idx.GetOrZero(),
-		})
+		settings = append(settings, ViewSettingFromModel(s))
 	}
 
 	return settings, nil
 }
 
 func CreateSetting(setting ViewSetting) error {
-	setter := models.SettingSetter{
-		Value:     omitnull.From(setting.Value),
-		Type:      omitnull.From(string(setting.Type)),
-		Idx:       omitnull.From(setting.Index),
-		CreatedAt: omitnull.From(time.Now()),
-		UpdatedAt: omitnull.From(time.Now()),
-	}
+	setter := setting.AsSetter()
 	_, err := models.Settings.Insert(&setter).Exec(context.Background(), db)
 
 	return err
 }
 
 func UpdateSetting(setting ViewSetting) error {
-	setter := models.SettingSetter{
-		Value:     omitnull.From(setting.Value),
-		Type:      omitnull.From(string(setting.Type)),
-		Idx:       omitnull.From(setting.Index),
-		CreatedAt: omitnull.From(time.Now()),
-		UpdatedAt: omitnull.From(time.Now()),
-	}
-	_, err := models.Settings.Update(setter.UpdateMod(), models.UpdateWhere.Settings.ID.EQ(setting.ID)).Exec(context.Background(), db)
+	setter := setting.AsSetter()
+	_, err := models.Settings.Update(setter.UpdateMod(), models.UpdateWhere.Settings.ID.EQ(setting.ID.GetOrZero())).Exec(context.Background(), db)
 	return err
 }
 

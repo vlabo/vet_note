@@ -7,8 +7,10 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"strconv"
 
 	"vet_note/db"
+	"vet_note/db/models"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -17,7 +19,7 @@ import (
 func getPatientList(c echo.Context) error {
 	patients, err := db.GetPatientList()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusCreated, patients)
@@ -27,10 +29,9 @@ func getPatient(c echo.Context) error {
 	// Get the patientId from the URL parameter
 	id := c.Param("patientId")
 
-
 	patient, err := db.GetPatient(id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	// Return the patient data as JSON
@@ -38,33 +39,37 @@ func getPatient(c echo.Context) error {
 }
 
 func updatePatient(c echo.Context) error {
-	var viewPatient db.ViewPatient
+	var viewPatient models.PatientSetter
 
 	// Bind the request body to the patient struct
 	if err := c.Bind(&viewPatient); err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
 	}
 
-	// if viewPatient.ID == nil {
-	// 	// New entry
-	// 	err := db.CreatePatient(&viewPatient)
-	// 	if err != nil {
-	// 		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
-	// 	}
-	// } else {
-	// 	// Update entry
-	// 	err := db.UpdatePatient(*viewPatient.ID, &viewPatient)
-	// 	if err != nil {
-	// 		return c.JSON(http.StatusInternalServerError, db.FmtError(err.Error()))
-	// 	}
-	// }
+	if _, ok := viewPatient.ID.Get(); ok {
+		// Update entry
+		err := db.UpdatePatient(viewPatient)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+	} else {
+		// New entry
+		err := db.CreatePatient(viewPatient)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+	}
 
-	return c.JSON(http.StatusOK, viewPatient)
+	return c.NoContent(http.StatusOK)
 }
 
 func deletePatient(c echo.Context) error {
 	id := c.Param("patientId")
-	err := db.DeletePatient(id)
+	intID, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+	}
+	err = db.DeletePatient(int32(intID))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
 	}
@@ -82,33 +87,38 @@ func getProcedure(c echo.Context) error {
 }
 
 func updateProcedure(c echo.Context) error {
-	var viewProcedure db.ViewProcedure
+	var viewProcedure models.ProcedureSetter
 
 	// Bind the request body to the procedure struct
 	if err := c.Bind(&viewProcedure); err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
 	}
 
-	// if viewProcedure.ID == nil {
-	// 	// New procedure
-	// 	err := db.CreateProcedure(&viewProcedure)
-	// 	if err != nil {
-	// 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
-	// 	}
-	// } else {
-	// 	// Update procedure
-	// 	err := db.UpdateProcedure(*viewProcedure.ID, &viewProcedure)
-	// 	if err != nil {
-	// 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
-	// 	}
-	// }
+	if _, ok := viewProcedure.ID.Get(); ok {
+		// Update entry
+		err := db.UpdateProcedure(viewProcedure)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+	} else {
+		// New entry
+		err := db.CreateProcedure(viewProcedure)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+	}
 
-	return c.JSON(http.StatusOK, viewProcedure)
+	return c.NoContent(http.StatusOK)
 }
 
 func deleteProcedure(c echo.Context) error {
 	id := c.Param("procedureId")
-	err := db.DeleteProcedure(id)
+
+	intID, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+	}
+	err = db.DeleteProcedure(int32(intID))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
 	}
@@ -159,7 +169,11 @@ func updateSettings(c echo.Context) error {
 
 func deleteSetting(c echo.Context) error {
 	id := c.Param("settingId")
-	err := db.DeleteSetting(id)
+	intID, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+	}
+	err = db.DeleteSetting(int32(intID))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
 	}

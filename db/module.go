@@ -11,9 +11,9 @@ import (
 	"vet_note/db/models"
 
 	"github.com/aarondl/opt/omitnull"
-	_ "modernc.org/sqlite"
 	"github.com/shopspring/decimal"
 	"github.com/stephenafamo/bob"
+	_ "modernc.org/sqlite"
 )
 
 type SettingType string
@@ -154,220 +154,113 @@ func setFloatIfPresent(target func(float32), patient map[string]string, key stri
 	}
 }
 
-func CreatePatient(patient map[string]string) error {
+func CreatePatient(patient models.PatientSetter) error {
 	slog.Info("CreatePatient", "patient", patient)
-
-	setter := models.PatientSetter{
-		CreatedAt: omitnull.From(time.Now()),
-		UpdatedAt: omitnull.From(time.Now()),
-	}
-	setIfPresent(setter.Type.Set, patient, "type")
-	setIfPresent(setter.Name.Set, patient, "name")
-	setIfPresent(setter.Gender.Set, patient, "gender")
-	setDecimalIfPresent(setter.Age.Set, patient, "name")
-	setIfPresent(setter.ChipID.Set, patient, "chip_id")
-	setFloatIfPresent(setter.Weight.Set, patient, "weight")
-	setDecimalIfPresent(setter.Castrated.Set, patient, "castrated")
-	setIfPresent(setter.Note.Set, patient, "note")
-	setIfPresent(setter.Owner.Set, patient, "owner")
-	setIfPresent(setter.OwnerPhone.Set, patient, "owner_phone")
-	_, err := models.Patients.Insert(&setter).Exec(context.Background(), db)
+	patient.CreatedAt = omitnull.From(time.Now())
+	patient.UpdatedAt = omitnull.From(time.Now())
+	_, err := models.Patients.Insert(&patient).Exec(context.Background(), db)
 	return err
 }
 
-func UpdatePatient(id int64, changes *ViewPatient) error {
-	slog.Info("UpdatePatient", "id", id, "changes", changes)
+func UpdatePatient(patient models.PatientSetter) error {
+	slog.Info("UpdatePatient", "id", patient.ID.GetOrZero())
+	patient.UpdatedAt = omitnull.From(time.Now())
 
-	// // Initialize the base query and parameters slice
-	// query := "UPDATE patients SET "
-	// params := []interface{}{}
-
-	// // Dynamically build the query based on non-null fields
-	// if changes.Type != nil {
-	// 	query += "type = ?, "
-	// 	params = append(params, *changes.Type)
-	// }
-	// if changes.Name != nil {
-	// 	query += "name = ?, "
-	// 	params = append(params, *changes.Name)
-	// }
-	// if changes.Gender != nil {
-	// 	query += "gender = ?, "
-	// 	params = append(params, *changes.Gender)
-	// }
-	// if changes.Age != nil {
-	// 	query += "age = ?, "
-	// 	params = append(params, *changes.Age)
-	// }
-	// if changes.ChipID != nil {
-	// 	query += "chip_id = ?, "
-	// 	params = append(params, *changes.ChipID)
-	// }
-	// if changes.Weight != nil {
-	// 	query += "weight = ?, "
-	// 	params = append(params, *changes.Weight)
-	// }
-	// if changes.Castrated != nil {
-	// 	query += "castrated = ?, "
-	// 	params = append(params, *changes.Castrated)
-	// }
-	// if changes.Note != nil {
-	// 	query += "note = ?, "
-	// 	params = append(params, *changes.Note)
-	// }
-	// if changes.Owner != nil {
-	// 	query += "owner = ?, "
-	// 	params = append(params, *changes.Owner)
-	// }
-	// if changes.OwnerPhone != nil {
-	// 	query += "owner_phone = ?, "
-	// 	params = append(params, *changes.OwnerPhone)
-	// }
-
-	// // Add the updated_at field and the WHERE clause
-	// query += "updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-	// params = append(params, id)
-
-	// // Execute the query
-	// _, err := db.Exec(query, params...)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to update patient: %s", err)
-	// }
-	return nil
+	_, err := models.Patients.Update(patient.UpdateMod(), models.UpdateWhere.Patients.ID.EQ(patient.ID.GetOrZero())).Exec(context.Background(), db)
+	return err
 }
 
-func DeletePatient(patientId string) error {
-	// query := `DELETE FROM patients WHERE id = ?`
-	// _, err := db.Exec(query, patientId)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to delete patient: %s", err)
-	// }
-	return nil
+func DeletePatient(patientId int32) error {
+	_, err := models.Patients.Delete(models.DeleteWhere.Patients.ID.EQ(patientId)).Exec(context.Background(), db)
+	return err
 }
 
-func CreateProcedure(procedure *ViewProcedure) error {
-	// slog.Info("CreateProcedure", "procedure", procedure)
-	// query := `INSERT INTO procedures (type, date, details, patient_id) VALUES (?, ?, ?, ?)`
-	// result, err := db.Exec(query, procedure.Type, procedure.Date, procedure.Details, procedure.PatientID)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create procedure: %s", err)
-	// }
-
-	// // Get the ID of the newly inserted record
-	// id, err := result.LastInsertId()
-	// if err != nil {
-	// 	return fmt.Errorf("failed to retrieve last insert ID: %s", err)
-	// }
-	// procedure.ID = &id
-	return nil
+func CreateProcedure(procedure models.ProcedureSetter) error {
+	procedure.CreatedAt = omitnull.From(time.Now())
+	procedure.UpdatedAt = omitnull.From(time.Now())
+	_, err := models.Procedures.Insert(&procedure).Exec(context.Background(), db)
+	return err
 }
 
-func UpdateProcedure(id int64, changes *ViewProcedure) error {
-	// slog.Info("UpdateProcedure", "id", id, "changes", changes)
+func UpdateProcedure(procedure models.ProcedureSetter) error {
+	slog.Info("UpdatePatient", "id", procedure.ID.GetOrZero())
+	procedure.UpdatedAt = omitnull.From(time.Now())
 
-	// // Initialize the base query and parameters slice
-	// query := "UPDATE procedures SET "
-	// params := []interface{}{}
-
-	// // Dynamically build the query based on non-null fields
-	// if changes.Type != nil {
-	// 	query += "type = ?, "
-	// 	params = append(params, *changes.Type)
-	// }
-	// if changes.Date != nil {
-	// 	query += "date = ?, "
-	// 	params = append(params, *changes.Date)
-	// }
-	// if changes.Details != nil {
-	// 	query += "details = ?, "
-	// 	params = append(params, *changes.Details)
-	// }
-
-	// // Add the updated_at field and the WHERE clause
-	// query += "updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-	// params = append(params, id)
-
-	// // Execute the query
-	// _, err := db.Exec(query, params...)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to update procedure: %s", err)
-	// }
-	return nil
+	_, err := models.Procedures.Update(procedure.UpdateMod(), models.UpdateWhere.Procedures.ID.EQ(procedure.ID.GetOrZero())).Exec(context.Background(), db)
+	return err
 }
 
-func DeleteProcedure(procedureId string) error {
-	// query := `DELETE FROM procedures WHERE id = ?`
-	// _, err := db.Exec(query, procedureId)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to delete procedure: %s", err)
-	// }
-	return nil
+func DeleteProcedure(procedureId int32) error {
+	_, err := models.Procedures.Delete(models.DeleteWhere.Procedures.ID.EQ(procedureId)).Exec(context.Background(), db)
+	return err
 }
 
 func GetPatientTypes() ([]ViewSetting, error) {
-	// query := `SELECT id, value, type, idx FROM settings WHERE type = ? ORDER BY idx`
-	// rows, err := db.Query(query, PatientType)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientType")).All(context.Background(), db)
+	if err != nil {
+		return nil, err
+	}
 
-	// var settings []ViewSetting
-	// for rows.Next() {
-	// 	var setting ViewSetting
-	// 	err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Index)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	settings = append(settings, setting)
-	// }
-	return nil, nil
+	settings := make([]ViewSetting, 0, len(dbSettings))
+
+	for _, s := range dbSettings {
+		settings = append(settings, ViewSetting{
+			ID:    s.ID,
+			Type:  PatientType,
+			Value: s.Value.GetOrZero(),
+			Index: s.Idx.GetOrZero(),
+		})
+	}
+
+	return settings, nil
 }
 
 func GetProcedureTypes() ([]ViewSetting, error) {
-	// query := `SELECT id, value, type, idx FROM settings WHERE type = ? ORDER BY idx`
-	// rows, err := db.Query(query, ProcedureType)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("ProcedureType")).All(context.Background(), db)
+	if err != nil {
+		return nil, err
+	}
 
-	// var settings []ViewSetting
-	// for rows.Next() {
-	// 	var setting ViewSetting
-	// 	err = rows.Scan(&setting.ID, &setting.Value, &setting.Type, &setting.Index)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	settings = append(settings, setting)
-	// }
-	return nil, nil
+	settings := make([]ViewSetting, 0, len(dbSettings))
+
+	for _, s := range dbSettings {
+		settings = append(settings, ViewSetting{
+			ID:    s.ID,
+			Type:  ProcedureType,
+			Value: s.Value.GetOrZero(),
+			Index: s.Idx.GetOrZero(),
+		})
+	}
+
+	return settings, nil
 }
 
 func CreateSetting(setting ViewSetting) error {
-	// query := `INSERT INTO settings (value, type, idx) VALUES (?, ?, ?)`
-	// _, err := db.Exec(query, setting.Value, setting.Type, setting.Index, setting.ID)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to update setting: %s", err)
-	// }
-	return nil
+	setter := models.SettingSetter{
+		Value:     omitnull.From(setting.Value),
+		Type:      omitnull.From(string(setting.Type)),
+		Idx:       omitnull.From(setting.Index),
+		CreatedAt: omitnull.From(time.Now()),
+		UpdatedAt: omitnull.From(time.Now()),
+	}
+	_, err := models.Settings.Insert(&setter).Exec(context.Background(), db)
+
+	return err
 }
 
 func UpdateSetting(setting ViewSetting) error {
-	// TODO: make fields optional.
-	// query := `UPDATE settings SET value = ?, type = ?, idx = ?`
-	// _, err := db.Exec(query, setting.Value, setting.Type, setting.Index, setting.ID)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to update setting: %s", err)
-	// }
-	return nil
+	setter := models.SettingSetter{
+		Value:     omitnull.From(setting.Value),
+		Type:      omitnull.From(string(setting.Type)),
+		Idx:       omitnull.From(setting.Index),
+		CreatedAt: omitnull.From(time.Now()),
+		UpdatedAt: omitnull.From(time.Now()),
+	}
+	_, err := models.Settings.Update(setter.UpdateMod(), models.UpdateWhere.Settings.ID.EQ(setting.ID)).Exec(context.Background(), db)
+	return err
 }
 
-func DeleteSetting(settingId string) error {
-	// query := `DELETE FROM settings WHERE id = ?`
-	// _, err := db.Exec(query, settingId)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to delete setting: %s", err)
-	// }
-	return nil
+func DeleteSetting(settingId int32) error {
+	_, err := models.Settings.Delete(models.DeleteWhere.Settings.ID.EQ(settingId)).Exec(context.Background(), db)
+	return err
 }

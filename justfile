@@ -17,6 +17,6 @@ ionic-build:
     cd web && ionic build --prod
 
 run: build
-     ./vet_note -db backup1.db -port 8001 -cors -dbLog
+     ./vet_note -db backup.db -port 8001 -cors -dbLog
 
 runall: ionic-build build run

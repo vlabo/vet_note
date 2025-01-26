@@ -37,10 +37,10 @@ type ViewPatient struct {
 }
 
 type ViewSetting struct {
-	ID    *int64      `json:"id"`
+	ID    int32       `json:"id"`
 	Type  SettingType `json:"type" tstype:"'PatientType' | 'ProcedureType'"`
 	Value string      `json:"value"`
-	Index uint        `json:"index"`
+	Index int32       `json:"index"`
 }
 
 type ViewError struct {

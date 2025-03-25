@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
+	"mime"
 	"net/http"
 	"os"
 	"strconv"
@@ -53,10 +54,13 @@ func updatePatient(c echo.Context) error {
 		}
 	} else {
 		// New entry
-		err := db.CreatePatient(viewPatient.AsSetter())
+		id, err := db.CreatePatient(viewPatient.AsSetter())
+		viewPatient.ID.Set(int32(id))
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
+		return c.JSON(http.StatusCreated, viewPatient)
+
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -192,7 +196,7 @@ func basicAuthMiddleware(username, password string) echo.MiddlewareFunc {
 	})
 }
 
-//go:embed web/www/*
+//go:embed ui/static/*
 var embeddedFiles embed.FS
 
 var (
@@ -214,18 +218,22 @@ func main() {
 		fmt.Printf("%s\n", err)
 		panic("Failed to initialize db")
 	}
-	username := os.Getenv("AUTH_USERNAME")
-	password := os.Getenv("AUTH_PASSWORD")
+	// username := os.Getenv("AUTH_USERNAME")
+	// password := os.Getenv("AUTH_PASSWORD")
+
+	_ = mime.AddExtensionType(".js", "application/javascript")
+	_ = mime.AddExtensionType(".mjs", "application/javascript")
+	_ = mime.AddExtensionType(".cjs", "application/javascript")
 
 	e := echo.New()
-
 	// e.Use(middleware.Logger())
 	if *useCors {
 		e.Use(middleware.CORS())
 	}
 
 	apiV1 := e.Group("/v1")
-	apiV1.Use(basicAuthMiddleware(username, password))
+	// FIXME: uncomment
+	// apiV1.Use(basicAuthMiddleware(username, password))
 	apiV1.GET("/authenticate", authenticate)
 	apiV1.GET("/patient-list", getPatientList)
 	apiV1.GET("/patient/:patientId", getPatient)
@@ -240,12 +248,13 @@ func main() {
 	apiV1.POST("/settings", updateSettings)
 	apiV1.DELETE("/setting/:settingId", deleteSetting)
 
-	subFS, err := fs.Sub(embeddedFiles, "web/www")
+	subFS, err := fs.Sub(embeddedFiles, "ui/static")
 	if err != nil {
 		fmt.Printf("%s", err)
 		panic("failed to initialize www")
 	}
 	e.GET("/*", echo.WrapHandler(http.FileServer(http.FS(subFS))))
+	// e.Static("/*", "ui/static")
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf("127.0.0.1:%d", *port)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("0.0.0.0:%d", *port)))
 }

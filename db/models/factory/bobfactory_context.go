@@ -17,7 +17,7 @@ var (
 	settingCtx   = newContextual[*models.Setting]("setting")
 )
 
-// Contextual is a convienience wrapper around context.WithValue and context.Value
+// Contextual is a conveniences wrapper around context.WithValue and context.Value
 type contextual[V any] struct {
 	key contextKey
 }

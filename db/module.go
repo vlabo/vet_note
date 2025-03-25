@@ -11,7 +11,6 @@ import (
 	"vet_note/db/models"
 
 	"github.com/aarondl/opt/omitnull"
-	"github.com/shopspring/decimal"
 	"github.com/stephenafamo/bob"
 	_ "modernc.org/sqlite"
 )
@@ -88,44 +87,30 @@ func GetPatientList() ([]ViewPatient, error) {
 
 	var patients []ViewPatient
 	for _, p := range dbPatients {
-		patients = append(patients, ViewPatientFromModel(p))
+		patient := ViewPatientFromModel(p)
+		procedures, err := p.Procedures().All(context.Background(), db)
+		if err != nil {
+			continue
+		}
+
+		for _, proc := range procedures {
+			patient.Procedures = append(patient.Procedures, ViewProcedureFromModel(proc))
+		}
+		patients = append(patients, patient)
 	}
 
 	return patients, nil
 }
 
-func setIfPresent(target func(string), patient map[string]string, key string) {
-	if value, ok := patient[key]; ok {
-		target(value)
-	}
-}
-
-// Helper function for decimal values
-func setDecimalIfPresent(target func(decimal.Decimal), patient map[string]string, key string) {
-	if value, ok := patient[key]; ok {
-		decimalValue, err := decimal.NewFromString(value) // Convert string to decimal
-		if err == nil {                                   // Only set if the conversion is successful
-			target(decimalValue)
-		}
-	}
-}
-
-// Helper function for decimal values
-func setFloatIfPresent(target func(float32), patient map[string]string, key string) {
-	if value, ok := patient[key]; ok {
-		decimalValue, err := strconv.ParseFloat(value, 32) // Convert string to decimal
-		if err == nil {                                    // Only set if the conversion is successful
-			target(float32(decimalValue))
-		}
-	}
-}
-
-func CreatePatient(patient models.PatientSetter) error {
+func CreatePatient(patient models.PatientSetter) (int64, error) {
 	slog.Info("CreatePatient", "patient", patient)
 	patient.CreatedAt = omitnull.From(time.Now())
 	patient.UpdatedAt = omitnull.From(time.Now())
-	_, err := models.Patients.Insert(&patient).Exec(context.Background(), db)
-	return err
+	result, err := bob.Exec(context.Background(), db, models.Patients.Insert(&patient))
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 func UpdatePatient(patient models.PatientSetter) error {

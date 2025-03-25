@@ -11,11 +11,11 @@ import (
 )
 
 type ViewProcedure struct {
-	ID        omit.Val[int32]      `json:"id"`
-	Type      omitnull.Val[string] `json:"type"`
-	Date      omitnull.Val[string] `json:"date"`
-	Details   omitnull.Val[string] `json:"details"`
-	PatientID omitnull.Val[int32]  `json:"patientId"`
+	ID        omit.Val[int32]      `json:"id" tstype:"number"`
+	Type      omitnull.Val[string] `json:"type" tstype:"string | null"`
+	Date      omitnull.Val[string] `json:"date" tstype:"string | null"`
+	Details   omitnull.Val[string] `json:"details" tstype:"string | null"`
+	PatientID omitnull.Val[int32]  `json:"patientId" tstype:"number | null"`
 }
 
 func (vp ViewProcedure) AsSetter() models.ProcedureSetter {
@@ -39,17 +39,17 @@ func ViewProcedureFromModel(p *models.Procedure) ViewProcedure {
 }
 
 type ViewPatient struct {
-	ID         omit.Val[int32]               `json:"id"`
-	Type       omitnull.Val[string]          `json:"type"`
-	Name       omitnull.Val[string]          `json:"name"`
+	ID         omit.Val[int32]               `json:"id" tstype:"number"`
+	Type       omitnull.Val[string]          `json:"type" tstype:"string | null"`
+	Name       omitnull.Val[string]          `json:"name" tstype:"string | null"`
 	Gender     omitnull.Val[string]          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
-	Age        omitnull.Val[decimal.Decimal] `json:"age"`
-	ChipID     omitnull.Val[string]          `json:"chipId"`
-	Weight     omitnull.Val[float32]         `json:"weight"`
-	Castrated  omitnull.Val[decimal.Decimal] `json:"castrated"`
-	Note       omitnull.Val[string]          `json:"note"`
-	Owner      omitnull.Val[string]          `json:"owner"`
-	OwnerPhone omitnull.Val[string]          `json:"ownerPhone"`
+	Age        omitnull.Val[decimal.Decimal] `json:"age" tstype:"number | null"`
+	ChipID     omitnull.Val[string]          `json:"chipId" tstype:"number | null"`
+	Weight     omitnull.Val[float32]         `json:"weight" tstype:"number | null"`
+	Castrated  omitnull.Val[decimal.Decimal] `json:"castrated" tstype:"number | null"`
+	Note       omitnull.Val[string]          `json:"note" tstype:"string | null"`
+	Owner      omitnull.Val[string]          `json:"owner" tstype:"string | null"`
+	OwnerPhone omitnull.Val[string]          `json:"ownerPhone" tstype:"string | null"`
 	Procedures []ViewProcedure               `json:"procedures"`
 }
 
@@ -88,10 +88,10 @@ func ViewPatientFromModel(p *models.Patient) ViewPatient {
 }
 
 type ViewSetting struct {
-	ID    omit.Val[int32]      `json:"id"`
+	ID    omit.Val[int32]      `json:"id" tstype:"number"`
 	Type  omitnull.Val[string] `json:"type" tstype:"'PatientType' | 'ProcedureType'"`
-	Value omitnull.Val[string] `json:"value"`
-	Index omitnull.Val[int32]  `json:"index"`
+	Value omitnull.Val[string] `json:"value" tstype:"string | null"`
+	Index omitnull.Val[int32]  `json:"index" tstype:"number | null"`
 }
 
 func (vs ViewSetting) AsSetter() models.SettingSetter {

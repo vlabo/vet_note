@@ -9,10 +9,6 @@ db_code_gen:
 	SQLITE_DSN=test.db go run github.com/stephenafamo/bob/gen/bobgen-sqlite@latest
 	rm test.db
 
-build:
-    # Build the Go application
-    go build .
-
 [working-directory: 'ui']
 ui-dev:
     bun run dev
@@ -21,11 +17,11 @@ ui-dev:
 ui-build:
     bun run build
 
-ionic-build:
-    cd web && ionic build --prod
+build: ui-build
+    # Build the Go application
+    go build .
 
 run: build
      ./vet_note -db backup1.db -port 8001 -cors -dbLog
 
-runall: ionic-build build run
 

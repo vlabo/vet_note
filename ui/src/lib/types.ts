@@ -11,39 +11,31 @@ export const ProcedureType: SettingType = "ProcedureType";
 // source: view.go
 
 export interface ViewProcedure {
-  id?: number /* int64 */;
-  type?: string;
-  date?: string;
-  details?: string;
-  patientId: number /* int64 */;
-}
-export interface ViewListPatient {
-  id: number /* int64 */;
-  type: string;
-  name: string;
-  chipId: string;
-  owner: string;
-  phone: string;
+  id: number;
+  type: string | null;
+  date: string | null;
+  details: string | null;
+  patientId: number | null;
 }
 export interface ViewPatient {
-  id?: number /* int64 */;
-  type?: string;
-  name?: string;
-  gender?: 'unknown' | 'male' | 'female';
-  age?: number;
-  chipId?: string;
-  weight?: number /* float64 */;
-  castrated?: number;
-  note?: string;
-  owner?: string;
-  ownerPhone?: string;
-  procedures?: ViewProcedure[];
+  id: number;
+  type: string | null;
+  name: string | null;
+  gender: 'unknown' | 'male' | 'female';
+  age: number | null;
+  chipId: number | null;
+  weight: number | null;
+  castrated: number | null;
+  note: string | null;
+  owner: string | null;
+  ownerPhone: string | null;
+  procedures: ViewProcedure[];
 }
 export interface ViewSetting {
-  id?: number /* int64 */;
+  id: number;
   type: 'PatientType' | 'ProcedureType';
-  value: string;
-  index: number /* uint */;
+  value: string | null;
+  index: number | null;
 }
 export interface ViewError {
   error: string;

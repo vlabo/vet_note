@@ -26,6 +26,8 @@ export interface ViewPatient {
   chipId: number | null;
   weight: number | null;
   castrated: number | null;
+  folder: number | null;
+  indexFolder: number | null;
   note: string | null;
   owner: string | null;
   ownerPhone: string | null;
@@ -33,7 +35,7 @@ export interface ViewPatient {
 }
 export interface ViewSetting {
   id: number;
-  type: 'PatientType' | 'ProcedureType';
+  type: 'PatientType' | 'ProcedureType' | 'PatientFolder';
   value: string | null;
   index: number | null;
 }

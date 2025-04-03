@@ -1,14 +1,21 @@
 import { type ViewPatient, type ViewProcedure, type ViewSetting } from "$lib/types";
 import { writable } from "svelte/store";
+import { dev } from '$app/environment';
 
-// const server = "http://127.0.0.1:8001/v1";
-const server = "/v1";
+var server = "/v1";
+if (dev) {
+  console.log("Running in development mode");
+  server = "http://127.0.0.1:8001/v1";
+}
+
 var patients: Array<ViewPatient> | null = null;
 var patientTypes: Array<ViewSetting> | null = null;
 var procedureTypes: Array<ViewSetting> | null = null;
+var patientFolders: Array<ViewSetting> | null = null;
 export var patientsStore = writable(new Array<ViewPatient>())
 export var settingsPatients = writable(new Array<ViewSetting>())
 export var settingsProcedures = writable(new Array<ViewSetting>())
+export var settingsFolders = writable(new Array<ViewSetting>())
 
 export async function fetchPatients() {
   var response = await fetch(`${server}/patient-list`);
@@ -19,11 +26,14 @@ export async function fetchPatients() {
 export async function fetchSettings() {
   var promise1 = fetch(`${server}/patient-types`);
   var promise2 = fetch(`${server}/procedure-types`);
-  var [patientsResponse, proceduresResponse] = await Promise.all([promise1, promise2])
+  var promise3 = fetch(`${server}/patient-folder`);
+  var [patientsResponse, proceduresResponse, foldersResponse] = await Promise.all([promise1, promise2, promise3])
   patientTypes = await patientsResponse.json();
   procedureTypes = await proceduresResponse.json();
+  patientFolders = await foldersResponse.json();
   settingsPatients.set(patientTypes!)
   settingsProcedures.set(procedureTypes!)
+  settingsFolders.set(patientFolders!)
 }
 
 export async function getPatient(id: Number): Promise<ViewPatient | undefined> {
@@ -89,32 +99,34 @@ export async function deletePatient(id: Number) {
   });
 }
 
-export async function addProcedure(patientId: Number, procedure: ViewProcedure) {
+export async function addProcedure(patientId: number, procedure: ViewProcedure) {
   var patient = patients!.find((patient) => patient.id === patientId);
   // TODO: add proper id
   // procedure.id = patient?.procedures?.length! + Math.floor(Math.random() * 1000);
   patient?.procedures?.push(procedure);
   patientsStore.set(patients!);
+  procedure.patientId = patientId;
   console.log("add procedure", procedure);
   
-  await fetch(`${server}/procedure`, {
+  await fetch(`${server}/procedure/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ patientId, procedure })
+    body: JSON.stringify(procedure)
   });
 }
 
-export async function updateProcedure(patientId: Number, procedure: ViewProcedure) {
+export async function updateProcedure(patientId: number, procedure: ViewProcedure) {
   var patient = patients!.find((patient) => patient.id === patientId);
   const index = patient?.procedures!.findIndex((p) => p.id === procedure.id);
   patient!.procedures![index!] = procedure;
   patientsStore.set(patients!);
+  procedure.patientId = patientId;
   console.log("update procedure", procedure);
   
-  await fetch(`${server}/procedure`, {
+  await fetch(`${server}/procedure/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ patientId, procedure })
+    body: JSON.stringify(procedure)
   });
 }
 
@@ -131,7 +143,6 @@ export async function deleteProcedure(patientId: Number, id: Number) {
 }
 
 export async function updatePatientSettings(patientTypes: ViewSetting[]) {
-  // settingsPatients.set(patientTypes);
   console.log("update patient type", patientTypes);
   
   await fetch(`${server}/settings`, {
@@ -142,13 +153,30 @@ export async function updatePatientSettings(patientTypes: ViewSetting[]) {
 }
 
 export async function updateProcedureSettings(procedureTypes: ViewSetting[]) {
-  // settingsProcedures.set(procedureTypes);
   console.log("update procedure type", procedureTypes);
   
   await fetch(`${server}/settings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(procedureTypes)
+  });
+}
+
+export async function updatePatientFolders(patientFolders: ViewSetting[]) {
+  console.log("patient folders", patientFolders);
+  
+  await fetch(`${server}/settings`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patientFolders)
+  });
+}
+
+export async function deleteSetting(id: Number) {
+  console.log("deleting setting", id);
+  
+  await fetch(`${server}/setting/${id}`, {
+    method: "DELETE",
   });
 }
 

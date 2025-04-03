@@ -1,47 +1,72 @@
 <script lang="ts">
   import {
+    faAngleDown,
+    faAngleRight,
+    faFolder,
     faGear,
-    // faMicrochip,
-    // faPhone,
-    faUser,
-    faUserSlash,
   } from "@fortawesome/free-solid-svg-icons";
   import Icon from "$lib/icon.svelte";
   import ActionButton from "$lib/actionButton.svelte";
-  import type { ViewPatient } from "$lib/types";
+  import type { ViewPatient, ViewSetting } from "$lib/types";
   import Fuse, { type FuseResult } from "fuse.js";
-  import { patientsStore } from "$lib/DataService";
-  import { onMount } from "svelte";
+  import { dndzone } from "svelte-dnd-action";
+  import {
+    patientsStore,
+    settingsFolders,
+    updatePatient,
+  } from "$lib/DataService";
+  import { flip } from "svelte/animate";
+  import Patient from "./Patient.svelte";
+  import { writable, type Writable } from "svelte/store";
 
-  var patients: ViewPatient[];
-  var filteredPatient: any[] = [];
+  var patients = patientsStore;
+  // var filteredPatient: any[] = [];
   var fuse: any = null;
   var searchQuery = "";
-  onMount(() => {
-    patientsStore.subscribe((storePatients) => {
-      fuse = new Fuse(storePatients, {
-        keys: ["name", "owner", "ownerPhone", "chipId"],
-        includeMatches: true,
-      });
-      filteredPatient = storePatients;
-      patients = storePatients;
-    });
+
+  interface Folder {
+    collapsed: boolean;
+    section: any | null;
+    folder: ViewSetting;
+    patients: Array<ViewPatient>;
+  }
+  var folders = writable(new Array<Folder>());
+  settingsFolders.subscribe(($items) => {
+    folders.set(
+      $items.map((item) => {
+        return {
+          collapsed: false,
+          section: null,
+          folder: item,
+          patients: new Array<ViewPatient>(),
+        };
+      }),
+    );
   });
 
-  function onSearch() {
-    if (!searchQuery) {
-      filteredPatient = patients;
-    } else {
-      const result = fuse.search(searchQuery);
+  function handleDnd(e: any) {
+    e.detail.items.forEach((p: ViewPatient, i: number) => {
+      p.indexFolder = i;
+    });
+    patients.set(e.detail.items);
+  }
 
-      // Map over the search results to include the highlighted parts
-      filteredPatient = result.map((p: FuseResult<ViewPatient>) => {
-        return {
-          ...p.item, // Original patient data
-          highlightedFields: highlightMatches(p), // Extract highlighted matches
-        };
+  function handleDndFolder(folder: Folder): (e: any) => void {
+    return (e: any) => {
+      e.detail.items.forEach((p: ViewPatient, i: number) => {
+        p.indexFolder = i;
       });
-    }
+      folder.patients = e.detail.items;
+      folders.update((f) => {
+        return f.map((fItem) => {
+          if (fItem.folder.id === folder.folder.id) {
+            return folder;
+          }
+          return fItem;
+        });
+      });
+      // console.log(folder.folder.value, e.detail.items);
+    };
   }
 
   // Function to generate highlighted matches
@@ -87,7 +112,6 @@
     placeholder="Search"
     class="border rounded px-3 mr-4 py-2 flex-grow focus:outline-none focus:ring"
     bind:value={searchQuery}
-    on:input={onSearch}
   />
   <a
     href="/settings"
@@ -99,52 +123,43 @@
 
 <ActionButton href="/patient/new/edit" />
 <div class="max-w-7xl mx-auto">
-  {#each filteredPatient as p}
-    <a
-      class="max-w-7xl mx-auto bg-white mb-2 cursor-pointer overflow-hidden"
-      href={"/patient/" + p.id}
-    >
-      <div class="p-4 flex items-center space-x-4 border-b border-gray-400">
-        <!-- Type -->
-        <div class="w-1/5 font-medium text-gray-700">{p.type}</div>
-        <div class="flex-1 flex items-center text-gray-800">
-          <div class="ml-2">
-            {@html p.highlightedFields?.name || p.name}
-          </div>
-        </div>
-        <!-- Patient Owner -->
-        {#if p.owner}
-          <div class="flex-1 flex items-center text-gray-800">
-            <Icon icon={faUser} />
-            <div class="ml-2">
-              {@html p.highlightedFields?.owner || p.owner}
-            </div>
-          </div>
-        {:else}
-          <div class="flex-1 flex items-center text-gray-800">
-            <Icon icon={faUserSlash} />
-          </div>
-        {/if}
-        <!-- Optional Chip ID
-        {#if p.chipId}
-          <div class="flex-1 flex items-center text-gray-800">
-            <Icon icon={faMicrochip} />
-            <div class="ml-2">
-              {@html p.highlightedFields?.chipId || p.chipId}
-            </div>
-          </div>
-        {/if} -->
-        <!-- Optional Phone
-        {#if p.ownerPhone}
-          <div class="flex-1 flex items-center text-gray-800">
-            <Icon icon={faPhone} />
-            <div class="ml-2">
-              {@html p.highlightedFields?.ownerPhone || p.ownerPhone}
-            </div>
-          </div>
-        {/if} -->
+  <section
+    class="min-h-8"
+    use:dndzone={{ items: $patients, flipDurationMs: 50 }}
+    on:consider={handleDnd}
+    on:finalize={handleDnd}
+  >
+    <!-- Patient List -->
+    {#each $patients as p (p.id)}
+      <div animate:flip={{ duration: 200 }}>
+        <Patient patient={p} />
       </div>
-    </a>
+    {/each}
+  </section>
+  {#each $folders as folder}
+    <div class="m-2 p-2 flex items-center">
+      <Icon class="m-4" icon={faFolder} />{folder.folder.value}
+    </div>
+    <section
+      class="ml-6 min-h-8"
+      use:dndzone={{
+        items: folder.patients,
+        flipDurationMs: 50,
+      }}
+      on:consider={handleDndFolder(folder)}
+      on:finalize={handleDndFolder(folder)}
+    >
+      {#each folder.patients as p (p.id)}
+        <div animate:flip={{ duration: 200 }}>
+          <Patient patient={p} />
+        </div>
+      {/each}
+      {#if folder.patients.length === 0}
+        <div class="flex items-center space-x-4 border-b border-gray-400">
+          <p class="p-4 text-gray-500">No patients in this folder</p>
+        </div>
+      {/if}
+    </section>
   {/each}
 </div>
 

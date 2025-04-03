@@ -18,7 +18,7 @@
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { getPatient, updatePatient } from "$lib/DataService";
-  import { formatDate } from "$lib/Date";
+  import { formatDate } from "$lib/Utils";
 
   console.log(page.params);
 

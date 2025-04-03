@@ -12,11 +12,13 @@
   } from "@fortawesome/free-solid-svg-icons";
   import type { ViewSetting } from "$lib/types";
   import DeletePopup from "$lib/DeletePopup.svelte";
+  import { deleteSetting } from "$lib/DataService";
 
   export let items = writable<Array<ViewSetting>>([]);
   export let title: string;
   export let placeholder: string;
-  export const settingType: "PatientType" | "ProcedureType" = "PatientType";
+  export let settingType: "PatientType" | "ProcedureType" | "PatientFolder" =
+    "PatientType";
   export let isAddingItem = false;
 
   let deletePopupIndex = -1;
@@ -25,7 +27,7 @@
 
   onMount(() => {
     items.update(($items: ViewSetting[]): ViewSetting[] => {
-      $items.sort((a, b) => a.index - b.index);
+      $items.sort((a, b) => a.index! - b.index!);
       return $items;
     });
 
@@ -62,8 +64,10 @@
   }
 
   function acceptItem() {
+    console.log(settingType);
     items.update(($items: ViewSetting[]): ViewSetting[] => {
       $items.push({
+        id: undefined,
         value: newItem,
         type: settingType,
         index: $items.length,
@@ -79,9 +83,12 @@
 
   function deleteItem() {
     items.update(($items: ViewSetting[]): ViewSetting[] => {
-      $items.splice(deletePopupIndex, 1);
+      const deleted = $items.splice(deletePopupIndex, 1);
+      if (deleted.length > 0) {
+        deleteSetting(deleted![0].id!);
+      }
       deletePopupIndex = -1;
-      $items.sort((a, b) => a.index - b.index);
+      $items.sort((a, b) => a.index! - b.index!);
       return $items;
     });
   }

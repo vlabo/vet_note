@@ -3,15 +3,18 @@
   import DeletePopup from "$lib/DeletePopup.svelte";
   import List from "./components/list.svelte";
   import {
+    settingsFolders,
     settingsPatients,
     settingsProcedures,
     updatePatientSettings,
     updateProcedureSettings,
+    updatePatientFolders,
   } from "$lib/DataService";
 
   // Style
   var patientTypes = settingsPatients;
   var procedureTypes = settingsProcedures;
+  var patientFolders = settingsFolders;
   var deletePopupOpen = false;
 </script>
 
@@ -40,8 +43,16 @@
       onUpdate={updateProcedureSettings}
     />
 
-    <div class="mt-4 mb-6">
-      <!-- User Section -->
+    <!-- Patient folders -->
+    <List
+      title="Папки на пациенти"
+      placeholder="име на папка"
+      settingType="PatientFolder"
+      bind:items={patientFolders}
+      onUpdate={updatePatientFolders}
+    />
+
+    <!--<div class="mt-4 mb-6">
       <section>
         <h2 class="text-gray-700 font-medium mb-4">Потребител</h2>
         <button
@@ -50,7 +61,7 @@
           Излез
         </button>
       </section>
-    </div>
+    </div>-->
   </main>
 </div>
 

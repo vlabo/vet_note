@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS patients (
     note TEXT,
     owner TEXT,
     owner_phone TEXT,
+    folder NUMERIC DEFAULT -1,
+    index_folder NUMERIC DEFAULT -1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME
@@ -36,3 +38,7 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME
 );
+
+-- ALTER TABLE patients ADD COLUMN weight REAL;
+-- ALTER TABLE patients ADD COLUMN folder NUMERIC DEFAULT -1;
+-- ALTER TABLE patients ADD COLUMN index_folder NUMERIC DEFAULT -1;

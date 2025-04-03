@@ -39,57 +39,63 @@ func ViewProcedureFromModel(p *models.Procedure) ViewProcedure {
 }
 
 type ViewPatient struct {
-	ID         omit.Val[int32]               `json:"id" tstype:"number"`
-	Type       omitnull.Val[string]          `json:"type" tstype:"string | null"`
-	Name       omitnull.Val[string]          `json:"name" tstype:"string | null"`
-	Gender     omitnull.Val[string]          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
-	Age        omitnull.Val[decimal.Decimal] `json:"age" tstype:"number | null"`
-	ChipID     omitnull.Val[string]          `json:"chipId" tstype:"number | null"`
-	Weight     omitnull.Val[float32]         `json:"weight" tstype:"number | null"`
-	Castrated  omitnull.Val[decimal.Decimal] `json:"castrated" tstype:"number | null"`
-	Note       omitnull.Val[string]          `json:"note" tstype:"string | null"`
-	Owner      omitnull.Val[string]          `json:"owner" tstype:"string | null"`
-	OwnerPhone omitnull.Val[string]          `json:"ownerPhone" tstype:"string | null"`
-	Procedures []ViewProcedure               `json:"procedures"`
+	ID          omit.Val[int32]               `json:"id" tstype:"number"`
+	Type        omitnull.Val[string]          `json:"type" tstype:"string | null"`
+	Name        omitnull.Val[string]          `json:"name" tstype:"string | null"`
+	Gender      omitnull.Val[string]          `json:"gender" tstype:"'unknown' | 'male' | 'female'"`
+	Age         omitnull.Val[decimal.Decimal] `json:"age" tstype:"number | null"`
+	ChipID      omitnull.Val[string]          `json:"chipId" tstype:"number | null"`
+	Weight      omitnull.Val[float32]         `json:"weight" tstype:"number | null"`
+	Castrated   omitnull.Val[decimal.Decimal] `json:"castrated" tstype:"number | null"`
+	Folder      omitnull.Val[decimal.Decimal] `json:"folder" tstype:"number | null"`
+	IndexFolder omitnull.Val[decimal.Decimal] `json:"indexFolder" tstype:"number | null"`
+	Note        omitnull.Val[string]          `json:"note" tstype:"string | null"`
+	Owner       omitnull.Val[string]          `json:"owner" tstype:"string | null"`
+	OwnerPhone  omitnull.Val[string]          `json:"ownerPhone" tstype:"string | null"`
+	Procedures  []ViewProcedure               `json:"procedures"`
 }
 
 func (vp ViewPatient) AsSetter() models.PatientSetter {
 	return models.PatientSetter{
-		ID:         vp.ID,
-		Type:       vp.Type,
-		Name:       vp.Name,
-		Gender:     vp.Gender,
-		Age:        vp.Age,
-		ChipID:     vp.ChipID,
-		Weight:     vp.Weight,
-		Castrated:  vp.Castrated,
-		Note:       vp.Note,
-		Owner:      vp.Owner,
-		OwnerPhone: vp.OwnerPhone,
+		ID:          vp.ID,
+		Type:        vp.Type,
+		Name:        vp.Name,
+		Gender:      vp.Gender,
+		Age:         vp.Age,
+		ChipID:      vp.ChipID,
+		Weight:      vp.Weight,
+		Castrated:   vp.Castrated,
+		Folder:      vp.Folder,
+		IndexFolder: vp.IndexFolder,
+		Note:        vp.Note,
+		Owner:       vp.Owner,
+		OwnerPhone:  vp.OwnerPhone,
 	}
 }
 
 func ViewPatientFromModel(p *models.Patient) ViewPatient {
 	vp := ViewPatient{
-		ID:         omit.From(p.ID),
-		Type:       omitnull.FromNull(p.Type),
-		Name:       omitnull.FromNull(p.Name),
-		Gender:     omitnull.FromNull(p.Gender),
-		Age:        omitnull.FromNull(p.Age),
-		ChipID:     omitnull.FromNull(p.ChipID),
-		Weight:     omitnull.FromNull(p.Weight),
-		Castrated:  omitnull.FromNull(p.Castrated),
-		Note:       omitnull.FromNull(p.Note),
-		Owner:      omitnull.FromNull(p.Owner),
-		OwnerPhone: omitnull.FromNull(p.OwnerPhone),
-		Procedures: make([]ViewProcedure, 0, 2),
+		ID:          omit.From(p.ID),
+		Type:        omitnull.FromNull(p.Type),
+		Name:        omitnull.FromNull(p.Name),
+		Gender:      omitnull.FromNull(p.Gender),
+		Age:         omitnull.FromNull(p.Age),
+		ChipID:      omitnull.FromNull(p.ChipID),
+		Weight:      omitnull.FromNull(p.Weight),
+		Castrated:   omitnull.FromNull(p.Castrated),
+		Folder:      omitnull.FromNull(p.Folder),
+		IndexFolder: omitnull.FromNull(p.IndexFolder),
+		Note:        omitnull.FromNull(p.Note),
+		Owner:       omitnull.FromNull(p.Owner),
+		OwnerPhone:  omitnull.FromNull(p.OwnerPhone),
+		Procedures:  make([]ViewProcedure, 0, 2),
 	}
 	return vp
 }
 
 type ViewSetting struct {
 	ID    omit.Val[int32]      `json:"id" tstype:"number"`
-	Type  omitnull.Val[string] `json:"type" tstype:"'PatientType' | 'ProcedureType'"`
+	Type  omitnull.Val[string] `json:"type" tstype:"'PatientType' | 'ProcedureType' | 'PatientFolder'"`
 	Value omitnull.Val[string] `json:"value" tstype:"string | null"`
 	Index omitnull.Val[int32]  `json:"index" tstype:"number | null"`
 }

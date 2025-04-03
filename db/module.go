@@ -176,6 +176,21 @@ func GetProcedureTypes() ([]ViewSetting, error) {
 	return settings, nil
 }
 
+func GetPatientFolders() ([]ViewSetting, error) {
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientFolder")).All(context.Background(), db)
+	if err != nil {
+		return nil, err
+	}
+
+	settings := make([]ViewSetting, 0, len(dbSettings))
+
+	for _, s := range dbSettings {
+		settings = append(settings, ViewSettingFromModel(s))
+	}
+
+	return settings, nil
+}
+
 func CreateSetting(setting ViewSetting) error {
 	setter := setting.AsSetter()
 	_, err := models.Settings.Insert(&setter).Exec(context.Background(), db)

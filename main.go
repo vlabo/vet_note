@@ -2,197 +2,344 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"mime"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"vet_note/db"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
-func getPatientList(c echo.Context) error {
+func getPatientList(w http.ResponseWriter, r *http.Request) {
 	patients, err := db.GetPatientList()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-
-	return c.JSON(http.StatusCreated, patients)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(patients)
 }
 
-func getPatient(c echo.Context) error {
-	// Get the patientId from the URL parameter
-	id := c.Param("patientId")
+func handlePatient(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		getPatient(w, r)
+		return
+	}
 
+	if r.Method == http.MethodPost {
+		updatePatient(w, r)
+		return
+	}
+
+	if r.Method == http.MethodDelete {
+		deletePatient(w, r)
+		return
+	}
+}
+
+func getPatient(w http.ResponseWriter, r *http.Request) {
+	// Extract patientId from URL: expected URL pattern /v1/patient/{patientId}
+	id := strings.TrimPrefix(r.URL.Path, "/v1/patient/")
 	patient, err := db.GetPatient(id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-
-	// Return the patient data as JSON
-	return c.JSON(http.StatusOK, patient)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(patient)
 }
 
-func updatePatient(c echo.Context) error {
+func updatePatient(w http.ResponseWriter, r *http.Request) {
 	var viewPatient db.ViewPatient
-
-	// Bind the request body to the patient struct
-	if err := c.Bind(&viewPatient); err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
+	if err := json.NewDecoder(r.Body).Decode(&viewPatient); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request body: %s", err))
+		return
 	}
 
 	if _, ok := viewPatient.ID.Get(); ok {
-		// Update entry
+		// Update existing patient
 		err := db.UpdatePatient(viewPatient.AsSetter())
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
 		}
 	} else {
-		// New entry
+		// Create new patient
 		id, err := db.CreatePatient(viewPatient.AsSetter())
-		viewPatient.ID.Set(int32(id))
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
 		}
-		return c.JSON(http.StatusCreated, viewPatient)
-
+		viewPatient.ID.Set(int32(id))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(viewPatient)
+		return
 	}
 
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func deletePatient(c echo.Context) error {
-	id := c.Param("patientId")
+func deletePatient(w http.ResponseWriter, r *http.Request) {
+	// Extract patientId from URL: expected path format: /v1/patient/{patientId}
+	id := strings.TrimPrefix(r.URL.Path, "/v1/patient/")
 	intID, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("parse error: %s", err))
+		return
 	}
 	err = db.DeletePatient(int32(intID))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("db error: %s", err))
+		return
 	}
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func getProcedure(c echo.Context) error {
-	id := c.Param("procedureId")
+func handleProcedure(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		getProcedure(w, r)
+		return
+	}
+	if r.Method == http.MethodPost {
+		updateProcedure(w, r)
+		return
+	}
+	if r.Method == http.MethodDelete {
+		deleteProcedure(w, r)
+		return
+	}
+}
+
+func getProcedure(w http.ResponseWriter, r *http.Request) {
+	// Extract procedureId from URL: expected path format: /v1/procedure/{procedureId}
+	id := strings.TrimPrefix(r.URL.Path, "/v1/procedure/")
 	procedure, err := db.GetProcedure(id)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, db.FmtError("Database error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Database error: %s", err))
+		return
 	}
-
-	return c.JSON(http.StatusOK, procedure)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(procedure)
 }
 
-func updateProcedure(c echo.Context) error {
+func updateProcedure(w http.ResponseWriter, r *http.Request) {
 	var viewProcedure db.ViewProcedure
 
-	// Bind the request body to the procedure struct
-	if err := c.Bind(&viewProcedure); err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
+	if err := json.NewDecoder(r.Body).Decode(&viewProcedure); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request body: %s", err))
+		return
 	}
+
+	// Log the updated procedure information.
+	slog.Debug("updateProcedure", "procedure", viewProcedure)
 
 	if _, ok := viewProcedure.ID.Get(); ok {
-		// Update entry
 		err := db.UpdateProcedure(viewProcedure.AsSetter())
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
 		}
 	} else {
-		// New entry
 		err := db.CreateProcedure(viewProcedure.AsSetter())
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
 		}
 	}
 
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func deleteProcedure(c echo.Context) error {
-	id := c.Param("procedureId")
-
+func deleteProcedure(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/v1/procedure/")
 	intID, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("parse error: %s", err))
+		return
 	}
 	err = db.DeleteProcedure(int32(intID))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("db error: %s", err))
+		return
 	}
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func getPatientTypes(c echo.Context) error {
+func getPatientTypes(w http.ResponseWriter, r *http.Request) {
 	types, err := db.GetPatientTypes()
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
+		http.Error(w, fmt.Sprintf("Failed to read settings: %s", err), http.StatusInternalServerError)
+		return
 	}
-
-	return c.JSON(http.StatusOK, types)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(types)
 }
 
-func getProcedureTypes(c echo.Context) error {
+func getProcedureTypes(w http.ResponseWriter, r *http.Request) {
 	types, err := db.GetProcedureTypes()
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to read settings: %s", err))
+		http.Error(w, fmt.Sprintf("Failed to read settings: %s", err), http.StatusInternalServerError)
+		return
 	}
-
-	return c.JSON(http.StatusOK, types)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(types)
 }
 
-func updateSetting(c echo.Context) error {
-	viewSetting := db.ViewSetting{}
-	if err := c.Bind(&viewSetting); err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
+func getPatientFolders(w http.ResponseWriter, r *http.Request) {
+	folders, err := db.GetPatientFolders()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to read settings: %s", err), http.StatusInternalServerError)
+		return
 	}
-	if err := db.UpdateSetting(viewSetting); err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("Failed to update setting: %s", err))
-	}
-	return c.NoContent(http.StatusOK)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(folders)
 }
 
-func updateSettings(c echo.Context) error {
-	viewSettings := []db.ViewSetting{}
-	if err := c.Bind(&viewSettings); err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("Invalid request body: %s", err))
+func handleSetting(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		updateSetting(w, r)
+		return
 	}
-	for _, viewSetting := range viewSettings {
+	if r.Method == http.MethodDelete {
+		deleteSetting(w, r)
+		return
+	}
+}
+
+func updateSetting(w http.ResponseWriter, r *http.Request) {
+	var viewSetting db.ViewSetting
+	if err := json.NewDecoder(r.Body).Decode(&viewSetting); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request body: %s", err))
+		return
+	}
+	if viewSetting.ID.IsUnset() {
+		if err := db.CreateSetting(viewSetting); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(db.FmtError("Failed to update setting: %s", err))
+			return
+		}
+	} else {
 		if err := db.UpdateSetting(viewSetting); err != nil {
-			return c.JSON(http.StatusBadRequest, db.FmtError("Failed to update setting: %s", err))
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(db.FmtError("Failed to update setting: %s", err))
+			return
 		}
 	}
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func deleteSetting(c echo.Context) error {
-	id := c.Param("settingId")
+func updateSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request method: %s", r.Method))
+		return
+	}
+
+	var viewSettings []db.ViewSetting
+	if err := json.NewDecoder(r.Body).Decode(&viewSettings); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request body: %s", err))
+		return
+	}
+	for _, viewSetting := range viewSettings {
+		if viewSetting.ID.IsUnset() {
+			if err := db.CreateSetting(viewSetting); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(db.FmtError("Failed to update setting: %s", err))
+				return
+			}
+		} else {
+			if err := db.UpdateSetting(viewSetting); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(db.FmtError("Failed to update setting: %s", err))
+				return
+			}
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func deleteSetting(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/v1/setting/")
 	intID, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("parse error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("parse error: %s", err))
+		return
 	}
 	err = db.DeleteSetting(int32(intID))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, db.FmtError("db error: %s", err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("db error: %s", err))
+		return
 	}
-	return c.NoContent(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-func authenticate(c echo.Context) error {
-	return c.NoContent(http.StatusOK)
-}
-
-func basicAuthMiddleware(username, password string) echo.MiddlewareFunc {
-	return middleware.BasicAuth(func(providedUsername, providedPassword string, c echo.Context) (bool, error) {
-		if providedUsername == username && providedPassword == password {
-			return true, nil
+func corsMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Handle preflight requests.
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.WriteHeader(http.StatusNoContent)
+			return
 		}
-		return false, nil
+		h.ServeHTTP(w, r)
+	})
+}
+
+func loggingMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// slog.Debug("request", "addr", r.RemoteAddr, "method", r.Method, "url", r.URL)
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -213,48 +360,48 @@ func main() {
 		os.Exit(0)
 	}
 
+	programLevel := new(slog.LevelVar)
+	programLevel.Set(slog.LevelDebug)
+	h := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
+	slog.SetDefault(slog.New(h))
+
 	err := db.InitializeDB(*databaseFile, *dbLog)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		panic("Failed to initialize db")
 	}
-	// username := os.Getenv("AUTH_USERNAME")
-	// password := os.Getenv("AUTH_PASSWORD")
 
 	_ = mime.AddExtensionType(".js", "application/javascript")
 	_ = mime.AddExtensionType(".mjs", "application/javascript")
 	_ = mime.AddExtensionType(".cjs", "application/javascript")
 
-	e := echo.New()
-	// e.Use(middleware.Logger())
-	if *useCors {
-		e.Use(middleware.CORS())
-	}
+	// Create a new ServeMux.
+	mux := http.NewServeMux()
 
-	apiV1 := e.Group("/v1")
-	// FIXME: uncomment
-	// apiV1.Use(basicAuthMiddleware(username, password))
-	apiV1.GET("/authenticate", authenticate)
-	apiV1.GET("/patient-list", getPatientList)
-	apiV1.GET("/patient/:patientId", getPatient)
-	apiV1.POST("/patient", updatePatient)
-	apiV1.DELETE("/patient/:patientId", deletePatient)
-	apiV1.GET("/procedure/:procedureId", getProcedure)
-	apiV1.POST("/procedure", updateProcedure)
-	apiV1.DELETE("/procedure/:procedureId", deleteProcedure)
-	apiV1.GET("/patient-types", getPatientTypes)
-	apiV1.GET("/procedure-types", getProcedureTypes)
-	apiV1.POST("/setting", updateSetting)
-	apiV1.POST("/settings", updateSettings)
-	apiV1.DELETE("/setting/:settingId", deleteSetting)
+	mux.HandleFunc("/v1/patient-list/", getPatientList)
+	mux.HandleFunc("/v1/patient/", handlePatient)
+	mux.HandleFunc("/v1/procedure/", handleProcedure)
+	mux.HandleFunc("/v1/patient-types/", getPatientTypes)
+	mux.HandleFunc("/v1/procedure-types", getProcedureTypes)
+	mux.HandleFunc("/v1/patient-folder", getPatientFolders)
+	mux.HandleFunc("/v1/setting", handleSetting)
+	mux.HandleFunc("/v1/settings", updateSettings)
 
 	subFS, err := fs.Sub(embeddedFiles, "ui/static")
 	if err != nil {
 		fmt.Printf("%s", err)
 		panic("failed to initialize www")
 	}
-	e.GET("/*", echo.WrapHandler(http.FileServer(http.FS(subFS))))
-	// e.Static("/*", "ui/static")
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf("0.0.0.0:%d", *port)))
+	fileServer := http.FileServer(http.FS(subFS))
+	mux.Handle("/", fileServer)
+
+	var handler http.Handler = mux
+	if *useCors {
+		handler = corsMiddleware(handler)
+	}
+	handler = loggingMiddleware(handler)
+
+	addr := fmt.Sprintf("0.0.0.0:%d", *port)
+	slog.Error("server", "err", http.ListenAndServe(addr, handler))
 }

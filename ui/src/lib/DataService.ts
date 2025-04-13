@@ -1,5 +1,5 @@
 import { type ViewPatient, type ViewProcedure, type ViewSetting } from "$lib/types";
-import { writable } from "svelte/store";
+import { derived, writable } from "svelte/store";
 import { dev } from '$app/environment';
 
 var server = "/v1";
@@ -8,7 +8,13 @@ if (dev) {
   server = "http://127.0.0.1:8001/v1";
 }
 
-var patients: Array<ViewPatient> | null = null;
+
+export interface Folder {
+  setting: ViewSetting;
+  patients: Array<ViewPatient>;
+}
+
+var patients: Map<number, ViewPatient> = new Map();
 var patientTypes: Array<ViewSetting> | null = null;
 var procedureTypes: Array<ViewSetting> | null = null;
 var patientFolders: Array<ViewSetting> | null = null;
@@ -17,10 +23,26 @@ export var settingsPatients = writable(new Array<ViewSetting>())
 export var settingsProcedures = writable(new Array<ViewSetting>())
 export var settingsFolders = writable(new Array<ViewSetting>())
 
+
+function updatePatientStore(patients: Array<ViewPatient>) {
+  patients.sort((a, b) => a.indexFolder! - b.indexFolder!);
+  patientsStore.set(patients);
+}
+
+export var folders = derived([patientsStore, settingsFolders], ([$patientsStore, $settingsFolders]) => {
+  return $settingsFolders.map((folder) => {
+    const patients = $patientsStore.filter((patient) => patient.folder == folder.id);
+    return { setting: folder, patients };
+  });
+});
+
 export async function fetchPatients() {
-  var response = await fetch(`${server}/patient-list`);
-  patients = await response.json();
-  patientsStore.set(patients!);
+  let response = await fetch(`${server}/patient-list`);
+  let patientsArray = await response.json();
+  patientsArray.forEach((p: ViewPatient) => {
+    patients.set(p.id, p);
+  })
+  updatePatientStore(patients!.values().toArray());
 }
 
 export async function fetchSettings() {
@@ -36,20 +58,21 @@ export async function fetchSettings() {
   settingsFolders.set(patientFolders!)
 }
 
-export async function getPatient(id: Number): Promise<ViewPatient | undefined> {
-  if (!patients) {
+export async function getPatient(id: number): Promise<ViewPatient | undefined> {
+  if (patients.size == 0) {
     await fetchPatients();
   }
-  var patient = patients!.find((patient) => patient.id === id);
+  var patient = patients!.get(id); 
+  if (!patient) return undefined;
 
   return { ...patient };
 }
 
-export async function getProcedure(patientId: Number, id: Number): Promise<ViewProcedure | undefined> {
+export async function getProcedure(patientId: number, id: number): Promise<ViewProcedure | undefined> {
   if (!patients) {
     await fetchPatients();
   }
-  var procedure = patients!.find((patient) => patient.id === patientId)?.procedures?.find((procedure) => procedure.id == id)
+  var procedure = patients!.get(patientId)?.procedures.find((procedure: ViewProcedure) => procedure.id == id); 
   if (procedure) {
     return { ...procedure };
   }
@@ -60,15 +83,28 @@ export async function getProcedure(patientId: Number, id: Number): Promise<ViewP
 // Setters
 
 export async function updatePatient(patient: ViewPatient) {
-  const index = patients!.findIndex((p) => p.id === patient.id);
-  patients![index] = patient;
-  patientsStore.set(patients!);
+  patients!.set(patient.id, patient);
+  updatePatientStore(patients!.values().toArray());
   console.log("update patient", patient);
 
   await fetch(`${server}/patient`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patient)
+  });
+}
+
+export async function updatePatients(updated: Array<ViewPatient>) {
+  updated.forEach((patient => {
+    patients!.set(patient.id, patient);
+  }));
+  updatePatientStore(patients!.values().toArray());
+  console.log("update patient", updated);
+
+  await fetch(`${server}/patients/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updated)
   });
 }
 
@@ -82,16 +118,15 @@ export async function addPatient(patient: ViewPatient) : Promise<ViewPatient> {
     body: JSON.stringify(patient)
   });
   var newPatient = await response.json();
-  patients?.push(newPatient);
-  patientsStore.set(patients!);
+  patients?.set(newPatient.id, newPatient);
+  updatePatientStore(patients!.values().toArray());
   console.log("add patient", newPatient);
   return newPatient;
 }
 
-export async function deletePatient(id: Number) {
-  var index = patients!.findIndex((patient) => patient.id == id);
-  patients!.splice(index, 1);
-  patientsStore.set(patients!);
+export async function deletePatient(id: number) {
+  patients?.delete(id);
+  updatePatientStore(patients!.values().toArray());
   console.log("delete patient", id);
 
   await fetch(`${server}/patient/${id}`, {
@@ -100,11 +135,10 @@ export async function deletePatient(id: Number) {
 }
 
 export async function addProcedure(patientId: number, procedure: ViewProcedure) {
-  var patient = patients!.find((patient) => patient.id === patientId);
   // TODO: add proper id
   // procedure.id = patient?.procedures?.length! + Math.floor(Math.random() * 1000);
-  patient?.procedures?.push(procedure);
-  patientsStore.set(patients!);
+  patients!.get(patientId)!.procedures?.push(procedure);
+  updatePatientStore(patients!.values().toArray());
   procedure.patientId = patientId;
   console.log("add procedure", procedure);
   
@@ -116,10 +150,10 @@ export async function addProcedure(patientId: number, procedure: ViewProcedure) 
 }
 
 export async function updateProcedure(patientId: number, procedure: ViewProcedure) {
-  var patient = patients!.find((patient) => patient.id === patientId);
+  var patient = patients!.get(patientId);
   const index = patient?.procedures!.findIndex((p) => p.id === procedure.id);
   patient!.procedures![index!] = procedure;
-  patientsStore.set(patients!);
+  updatePatientStore(patients!.values().toArray());
   procedure.patientId = patientId;
   console.log("update procedure", procedure);
   
@@ -130,11 +164,11 @@ export async function updateProcedure(patientId: number, procedure: ViewProcedur
   });
 }
 
-export async function deleteProcedure(patientId: Number, id: Number) {
-  var patient = patients!.find((patient) => patient.id === patientId);
+export async function deleteProcedure(patientId: number, id: number) {
+  var patient = patients!.get(patientId);
   var index = patient?.procedures!.findIndex((procedure) => procedure.id == id);
   patient?.procedures!.splice(index!, 1);
-  patientsStore.set(patients!);
+  updatePatientStore(patients!.values().toArray());
   console.log("delete procedure", id);
   
   await fetch(`${server}/procedure/${id}`, {

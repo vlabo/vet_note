@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 	"time"
 
 	"vet_note/db/models"
@@ -22,7 +23,10 @@ const (
 	ProcedureType SettingType = "ProcedureType"
 )
 
-var db bob.DB
+var (
+	db     bob.DB
+	dbLock sync.RWMutex
+)
 
 //go:embed scheme.sql
 var sqlScheme string
@@ -44,6 +48,8 @@ func InitializeDB(path string, _ bool) error {
 }
 
 func GetPatient(id string) (patient ViewPatient, err error) {
+	dbLock.RLock()
+	defer dbLock.RUnlock()
 	slog.Info("GetPatient", "id", id)
 	idInt, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
@@ -69,6 +75,9 @@ func GetPatient(id string) (patient ViewPatient, err error) {
 }
 
 func GetProcedure(id string) (procedure ViewProcedure, err error) {
+	dbLock.RLock()
+	defer dbLock.RUnlock()
+
 	idInt, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
 		return
@@ -80,6 +89,9 @@ func GetProcedure(id string) (procedure ViewProcedure, err error) {
 }
 
 func GetPatientList() ([]ViewPatient, error) {
+	dbLock.RLock()
+	defer dbLock.RUnlock()
+
 	dbPatients, err := models.Patients.Query().All(context.Background(), db)
 	if err != nil {
 		return nil, err
@@ -103,6 +115,9 @@ func GetPatientList() ([]ViewPatient, error) {
 }
 
 func CreatePatient(patient models.PatientSetter) (int64, error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	slog.Info("CreatePatient", "patient", patient)
 	patient.CreatedAt = omitnull.From(time.Now())
 	patient.UpdatedAt = omitnull.From(time.Now())
@@ -114,6 +129,9 @@ func CreatePatient(patient models.PatientSetter) (int64, error) {
 }
 
 func UpdatePatient(patient models.PatientSetter) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	slog.Info("UpdatePatient", "id", patient.ID.GetOrZero())
 	patient.UpdatedAt = omitnull.From(time.Now())
 
@@ -122,11 +140,17 @@ func UpdatePatient(patient models.PatientSetter) error {
 }
 
 func DeletePatient(patientId int32) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	_, err := models.Patients.Delete(models.DeleteWhere.Patients.ID.EQ(patientId)).Exec(context.Background(), db)
 	return err
 }
 
 func CreateProcedure(procedure models.ProcedureSetter) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	procedure.CreatedAt = omitnull.From(time.Now())
 	procedure.UpdatedAt = omitnull.From(time.Now())
 	_, err := models.Procedures.Insert(&procedure).Exec(context.Background(), db)
@@ -134,6 +158,9 @@ func CreateProcedure(procedure models.ProcedureSetter) error {
 }
 
 func UpdateProcedure(procedure models.ProcedureSetter) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	slog.Info("UpdatePatient", "id", procedure.ID.GetOrZero())
 	procedure.UpdatedAt = omitnull.From(time.Now())
 
@@ -142,11 +169,17 @@ func UpdateProcedure(procedure models.ProcedureSetter) error {
 }
 
 func DeleteProcedure(procedureId int32) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	_, err := models.Procedures.Delete(models.DeleteWhere.Procedures.ID.EQ(procedureId)).Exec(context.Background(), db)
 	return err
 }
 
 func GetPatientTypes() ([]ViewSetting, error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientType")).All(context.Background(), db)
 	if err != nil {
 		return nil, err
@@ -162,6 +195,9 @@ func GetPatientTypes() ([]ViewSetting, error) {
 }
 
 func GetProcedureTypes() ([]ViewSetting, error) {
+	dbLock.RLock()
+	defer dbLock.RUnlock()
+
 	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("ProcedureType")).All(context.Background(), db)
 	if err != nil {
 		return nil, err
@@ -177,6 +213,9 @@ func GetProcedureTypes() ([]ViewSetting, error) {
 }
 
 func GetPatientFolders() ([]ViewSetting, error) {
+	dbLock.RLock()
+	defer dbLock.RUnlock()
+
 	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientFolder")).All(context.Background(), db)
 	if err != nil {
 		return nil, err
@@ -192,6 +231,9 @@ func GetPatientFolders() ([]ViewSetting, error) {
 }
 
 func CreateSetting(setting ViewSetting) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	setter := setting.AsSetter()
 	_, err := models.Settings.Insert(&setter).Exec(context.Background(), db)
 
@@ -199,12 +241,18 @@ func CreateSetting(setting ViewSetting) error {
 }
 
 func UpdateSetting(setting ViewSetting) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	setter := setting.AsSetter()
 	_, err := models.Settings.Update(setter.UpdateMod(), models.UpdateWhere.Settings.ID.EQ(setting.ID.GetOrZero())).Exec(context.Background(), db)
 	return err
 }
 
 func DeleteSetting(settingId int32) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
 	_, err := models.Settings.Delete(models.DeleteWhere.Settings.ID.EQ(settingId)).Exec(context.Background(), db)
 	return err
 }

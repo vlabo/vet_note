@@ -94,6 +94,34 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func updatePatients(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+
+		return
+	}
+	var viewPatients []db.ViewPatient
+	if err := json.NewDecoder(r.Body).Decode(&viewPatients); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(db.FmtError("Invalid request body: %s", err))
+		return
+	}
+
+	// Update existing patient
+	for _, viewPatient := range viewPatients {
+		err := db.UpdatePatient(viewPatient.AsSetter())
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func deletePatient(w http.ResponseWriter, r *http.Request) {
 	// Extract patientId from URL: expected path format: /v1/patient/{patientId}
 	id := strings.TrimPrefix(r.URL.Path, "/v1/patient/")
@@ -380,6 +408,7 @@ func main() {
 
 	mux.HandleFunc("/v1/patient-list/", getPatientList)
 	mux.HandleFunc("/v1/patient/", handlePatient)
+	mux.HandleFunc("/v1/patients/", updatePatients)
 	mux.HandleFunc("/v1/procedure/", handleProcedure)
 	mux.HandleFunc("/v1/patient-types/", getPatientTypes)
 	mux.HandleFunc("/v1/procedure-types", getProcedureTypes)

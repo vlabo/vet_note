@@ -15,5 +15,5 @@ export function formatDate(date: Date|string|undefined) : string {
 }
 
 export interface ViewPatientHighlighted extends ViewPatient {
-  highlightedFields: any;
+  highlightedFields: any | undefined;
 }

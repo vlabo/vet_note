@@ -4,29 +4,31 @@
   import ActionButton from "$lib/actionButton.svelte";
   import type { ViewPatient, ViewSetting } from "$lib/types";
   import Fuse, { type FuseResult } from "fuse.js";
-  import {
-    settingsFolders,
-    updatePatient,
-    folders,
-    type Folder,
-    patientsStore,
-    updatePatients,
-  } from "$lib/DataService";
+  import { folders, patientsStore, updatePatients } from "$lib/DataService";
   import FolderList from "./Folder.svelte";
   import Patient from "./Patient.svelte";
   import { dndzone } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
-  let patients: Array<ViewPatient> = [];
+  import type { ViewPatientHighlighted } from "$lib/Utils";
+  let patients: Array<ViewPatient> | Array<ViewPatientHighlighted> = [];
+  var fuse: Fuse<ViewPatient> | null = null;
+  let filteredPatients: Array<any> = [];
+
   $: {
     patients = $patientsStore.filter((p: ViewPatient) => p.folder == -1);
+    fuse = new Fuse(patients, {
+      includeMatches: true,
+      keys: ["name", "owner"],
+    });
   }
+
+  $: displayPatients = searchQuery.length ? filteredPatients : patients;
   // var filteredPatient: any[] = [];
-  var fuse: any = null;
   var searchQuery = "";
 
   function handleDnd(e: any) {
-    patients = e.detail.items;
-    patients.forEach((p: ViewPatient, index: number) => {
+    displayPatients = e.detail.items;
+    displayPatients.forEach((p: ViewPatient, index: number) => {
       p.folder = -1;
       p.indexFolder = index;
     });
@@ -34,7 +36,43 @@
 
   function handleDndFinalize(e: any) {
     handleDnd(e);
-    updatePatients(patients);
+    updatePatients(displayPatients);
+  }
+
+  function onSearch() {
+    if (searchQuery.length == 0) {
+      displayPatients = patients;
+      displayPatients.forEach((p: any) => {
+        p.highlightedFields = {};
+      });
+      return;
+    }
+    let result = fuse!.search(searchQuery);
+    filteredPatients = result.map((r) => {
+      let item = r.item;
+      if (r.matches) {
+        let patient: ViewPatientHighlighted = {
+          ...item,
+          highlightedFields: {},
+        };
+
+        for (const match of r.matches) {
+          if (match.key === "name" && match.indices) {
+            patient.highlightedFields.name = generateHighlightedString(
+              patient.name,
+              match.indices,
+            );
+          }
+          if (match.key === "owner" && match.indices) {
+            patient.highlightedFields.owner = generateHighlightedString(
+              patient.owner,
+              match.indices,
+            );
+          }
+        }
+        return patient;
+      }
+    });
   }
 
   // Function to wrap matched parts in <mark> tags for highlighting
@@ -67,6 +105,7 @@
     placeholder="Search"
     class="border rounded px-3 mr-4 py-2 flex-grow focus:outline-none focus:ring"
     bind:value={searchQuery}
+    on:input={onSearch}
   />
   <a
     href="/settings"
@@ -80,19 +119,19 @@
 <div class="max-w-7xl mx-auto">
   <section
     class="min-h-8"
-    use:dndzone={{ items: patients, flipDurationMs: 300 }}
+    use:dndzone={{ items: displayPatients, flipDurationMs: 100 }}
     on:consider={handleDnd}
     on:finalize={handleDndFinalize}
   >
-    {#each patients as p (p.id)}
+    {#each displayPatients as p (p.id)}
       <!-- Patient List -->
-      <div animate:flip={{ duration: 300 }}>
+      <div animate:flip={{ duration: 100 }}>
         <Patient patient={p} />
       </div>
     {/each}
   </section>
   {#each $folders as folder}
-    <FolderList {folder} />
+    <FolderList {folder} {searchQuery} />
   {/each}
 </div>
 

@@ -10,30 +10,99 @@
   import { dndzone } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import type { ViewPatient } from "$lib/types";
+  import Fuse from "fuse.js";
+  import type { ViewPatientHighlighted } from "$lib/Utils";
 
   export var folder: Folder;
   export var collapsed: boolean = true;
+  export var searchQuery: string = "";
+
   let patients = new Array<ViewPatient>();
+  let filteredPatients: Array<any> = [];
+  var fuse: Fuse<ViewPatient> | null = null;
+  var displayPatients: Array<any> = patients;
   $: {
     patients = folder.patients;
-    // patients.sort((a, b) => a.indexFolder! - b.indexFolder!);
+    fuse = new Fuse(patients, {
+      includeMatches: true,
+      keys: ["name", "owner"],
+    });
+    displayPatients = searchQuery.length ? filteredPatients : patients;
+  }
+
+  function onSearch(searchQuery: string) {
+    if (searchQuery.length == 0) {
+      displayPatients.forEach((p: any) => {
+        p.highlightedFields = {};
+      });
+      return;
+    }
+
+    // Search with Fuse.js
+    let result = fuse!.search(searchQuery);
+    filteredPatients = result.map((r) => {
+      let item = r.item;
+      if (r.matches) {
+        let patient: ViewPatientHighlighted = {
+          ...item,
+          highlightedFields: {},
+        };
+
+        for (const match of r.matches) {
+          if (match.key === "name" && match.indices) {
+            patient.highlightedFields.name = generateHighlightedString(
+              patient.name,
+              match.indices,
+            );
+          }
+          if (match.key === "owner" && match.indices) {
+            patient.highlightedFields.owner = generateHighlightedString(
+              patient.owner,
+              match.indices,
+            );
+          }
+        }
+        return patient;
+      }
+    });
+    displayPatients = filteredPatients;
+  }
+
+  $: onSearch(searchQuery);
+
+  // Function to wrap matched parts in <mark> tags for highlighting
+  function generateHighlightedString(text: any, indices: any) {
+    let highlighted = "";
+    let lastIndex = 0;
+
+    for (const [start, end] of indices) {
+      // Add text before the match
+      highlighted += text.slice(lastIndex, start);
+
+      // Wrap the matched text in <mark> tags
+      highlighted += `<mark>${text.slice(start, end + 1)}</mark>`;
+
+      // Update the last index
+      lastIndex = end + 1;
+    }
+
+    // Add remaining text after the final match
+    highlighted += text.slice(lastIndex);
+
+    return highlighted;
   }
 
   function handleDnd(e: any) {
-    console.log(e.detail);
-    // patients = e.detail.items;
-    patients = e.detail.items.map((p: ViewPatient, index: number) => {
+    displayPatients = e.detail.items;
+    displayPatients.forEach((p: ViewPatient, index: number) => {
       p.folder = folder.setting.id;
       p.indexFolder = index;
-      console.log(index, p);
-      return p;
     });
-    console.log(patients);
   }
 
   function handleDndFinalize(e: any) {
     handleDnd(e);
-    updatePatients(patients);
+    updatePatients(displayPatients);
   }
 </script>
 
@@ -50,18 +119,18 @@
 <div>
   <section
     class="ml-6 min-h-8"
-    use:dndzone={{ items: patients, flipDurationMs: 300 }}
+    use:dndzone={{ items: displayPatients, flipDurationMs: 300 }}
     on:consider={handleDnd}
     on:finalize={handleDndFinalize}
     hidden={collapsed}
   >
-    {#each patients as p (p.id)}
+    {#each displayPatients as p (p.id)}
       <!-- Patient List -->
       <div animate:flip={{ duration: 300 }}>
         <Patient patient={p} />
       </div>
     {/each}
-    {#if patients.length == 0}
+    {#if displayPatients.length == 0}
       <div class="ml-6">
         <p class="text-gray-500">No patients in this folder.</p>
       </div>

@@ -1,7 +1,5 @@
 <script lang="ts">
   import Icon from "$lib/icon.svelte";
-  import type { ViewPatient } from "$lib/types";
-  import type { ViewPatientHighlighted } from "$lib/Utils";
   import {
     faMicrochip,
     faPhone,
@@ -10,7 +8,7 @@
   } from "@fortawesome/free-solid-svg-icons";
   import { onMount } from "svelte";
 
-  export var patient: ViewPatient;
+  export var patient: any;
   let elem: HTMLElement;
   onMount(() => {
     if (elem) {
@@ -29,7 +27,9 @@
       <div class="w-1/5 font-medium text-gray-700">{patient.type}</div>
       <div class="flex-1 flex items-center text-gray-800">
         <div class="ml-2">
-          {patient.name}
+          {@html patient.highlightedFields?.name
+            ? patient.highlightedFields.name
+            : patient.name}
         </div>
       </div>
       <!-- Patient Owner -->
@@ -37,7 +37,9 @@
         <div class="flex-1 flex items-center text-gray-800">
           <Icon icon={faUser} />
           <div class="ml-2">
-            {patient.owner}
+            {@html patient.highlightedFields?.owner
+              ? patient.highlightedFields.owner
+              : patient.owner}
           </div>
         </div>
       {:else}

@@ -51,17 +51,6 @@
       bind:items={patientFolders}
       onUpdate={updatePatientFolders}
     />
-
-    <!--<div class="mt-4 mb-6">
-      <section>
-        <h2 class="text-gray-700 font-medium mb-4">Потребител</h2>
-        <button
-          class="w-full bg-red-500 text-white py-2 rounded focus:outline-none"
-        >
-          Излез
-        </button>
-      </section>
-    </div>-->
   </main>
 </div>
 

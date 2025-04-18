@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
-  import Sortable from "sortablejs";
   import Icon from "$lib/icon.svelte";
   import {
     faBars,
@@ -13,6 +12,7 @@
   import type { ViewSetting } from "$lib/types";
   import DeletePopup from "$lib/DeletePopup.svelte";
   import { deleteSetting } from "$lib/DataService";
+  import { dndzone } from "svelte-dnd-action";
 
   export let items = writable<Array<ViewSetting>>([]);
   export let title: string;
@@ -23,41 +23,6 @@
 
   let deletePopupIndex = -1;
   let newItem = "";
-  let listElement: HTMLElement;
-
-  onMount(() => {
-    items.update(($items: ViewSetting[]): ViewSetting[] => {
-      $items.sort((a, b) => a.index! - b.index!);
-      return $items;
-    });
-
-    Sortable.create(listElement, {
-      animation: 100,
-      handle: ".drag-handle",
-      onStart(evt) {
-        evt.item.classList.add("bg-blue-300");
-        evt.item.classList.remove("bg-white");
-      },
-      onEnd(evt) {
-        evt.item.classList.remove("bg-blue-300");
-        evt.item.classList.add("bg-white");
-        items.update(($items: ViewSetting[]): ViewSetting[] => {
-          const clonedItems = $items.slice();
-          const movedItem = clonedItems.splice(evt.oldIndex!, 1)[0];
-          clonedItems.splice(evt.newIndex!, 0, movedItem);
-          clonedItems.forEach((item, index) => {
-            item.index = index;
-          });
-          onUpdate(clonedItems);
-          return $items;
-        });
-      },
-      onClone(evt) {
-        evt.item.classList.add("bg-blue-300");
-        evt.item.classList.remove("bg-white");
-      },
-    });
-  });
 
   function addItem() {
     isAddingItem = true;
@@ -67,7 +32,7 @@
     console.log(settingType);
     items.update(($items: ViewSetting[]): ViewSetting[] => {
       $items.push({
-        id: undefined,
+        id: -1,
         value: newItem,
         type: settingType,
         index: $items.length,
@@ -77,6 +42,20 @@
       onUpdate($items);
       return $items;
     });
+  }
+
+  function handleDnd(e: any) {
+    items.update(() => {
+      e.detail.items.forEach((s: ViewSetting, index: number) => {
+        s.index = index;
+      });
+      return e.detail.items;
+    });
+  }
+
+  function handleDndFinalize(e: any) {
+    handleDnd(e);
+    onUpdate($items);
   }
 
   export var onUpdate = (_: ViewSetting[]) => {};
@@ -96,8 +75,12 @@
 
 <div class="mt-4 mb-6">
   <h2 class="text-gray-700 font-medium border-b border-gray-400">{title}</h2>
-  <section bind:this={listElement}>
-    {#each $items as item, index}
+  <section
+    use:dndzone={{ items: $items, type: settingType }}
+    on:consider={handleDnd}
+    on:finalize={handleDndFinalize}
+  >
+    {#each $items as item, index (item.id)}
       <div class="flex items-center border-b border-gray-400 bg-white">
         <Icon icon={faBars} class="py-3 pl-2 pr-10 drag-handle" />
         <span class="text-gray-800">{item.value}</span>

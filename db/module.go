@@ -13,6 +13,7 @@ import (
 
 	"github.com/aarondl/opt/omitnull"
 	"github.com/stephenafamo/bob"
+	"github.com/stephenafamo/bob/dialect/sqlite/sm"
 	_ "modernc.org/sqlite"
 )
 
@@ -180,7 +181,7 @@ func GetPatientTypes() ([]ViewSetting, error) {
 	dbLock.Lock()
 	defer dbLock.Unlock()
 
-	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientType")).All(context.Background(), db)
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientType"), sm.OrderBy(models.SettingColumns.Idx)).All(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +199,7 @@ func GetProcedureTypes() ([]ViewSetting, error) {
 	dbLock.RLock()
 	defer dbLock.RUnlock()
 
-	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("ProcedureType")).All(context.Background(), db)
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("ProcedureType"), sm.OrderBy(models.SettingColumns.Idx)).All(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +217,7 @@ func GetPatientFolders() ([]ViewSetting, error) {
 	dbLock.RLock()
 	defer dbLock.RUnlock()
 
-	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientFolder")).All(context.Background(), db)
+	dbSettings, err := models.Settings.Query(models.SelectWhere.Settings.Type.EQ("PatientFolder"), sm.OrderBy(models.SettingColumns.Idx)).All(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}

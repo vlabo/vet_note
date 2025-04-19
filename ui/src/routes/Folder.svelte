@@ -7,7 +7,7 @@
   } from "@fortawesome/free-solid-svg-icons";
   import Patient from "./Patient.svelte";
   import { updatePatients, type Folder } from "$lib/DataService";
-  import { dndzone } from "svelte-dnd-action";
+  import { dndzone, SOURCES, TRIGGERS } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import type { ViewPatient } from "$lib/types";
   import Fuse from "fuse.js";
@@ -21,6 +21,8 @@
   let filteredPatients: Array<any> = [];
   var fuse: Fuse<ViewPatient> | null = null;
   var displayPatients: Array<any> = patients;
+  let dragDisabled: boolean = true;
+
   $: {
     patients = folder.patients;
     fuse = new Fuse(patients, {
@@ -93,16 +95,43 @@
   }
 
   function handleDnd(e: any) {
+    const {
+      items: _,
+      info: { source, trigger },
+    } = e.detail;
+
     displayPatients = e.detail.items;
     displayPatients.forEach((p: ViewPatient, index: number) => {
-      p.folder = folder.setting.id;
+      p.folder = folder.setting.id!;
       p.indexFolder = index;
     });
+    if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
+      dragDisabled = true;
+    }
   }
 
   function handleDndFinalize(e: any) {
+    const {
+      items: _,
+      info: { source },
+    } = e.detail;
     handleDnd(e);
     updatePatients(displayPatients);
+    if (source === SOURCES.POINTER) {
+      dragDisabled = true;
+    }
+  }
+
+  function startDrag(e: any) {
+    // preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
+    e.preventDefault();
+    dragDisabled = false;
+  }
+
+  function handleKeyDown(e: any) {
+    if ((e.key === "Enter" || e.key === " ") && dragDisabled) {
+      dragDisabled = false;
+    }
   }
 </script>
 
@@ -119,15 +148,15 @@
 <div>
   <section
     class="ml-6 min-h-8"
-    use:dndzone={{ items: displayPatients, flipDurationMs: 300 }}
+    use:dndzone={{ items: displayPatients, dragDisabled, flipDurationMs: 100 }}
     on:consider={handleDnd}
     on:finalize={handleDndFinalize}
     hidden={collapsed}
   >
     {#each displayPatients as p (p.id)}
       <!-- Patient List -->
-      <div animate:flip={{ duration: 300 }}>
-        <Patient patient={p} />
+      <div animate:flip={{ duration: 100 }}>
+        <Patient patient={p} {dragDisabled} {startDrag} {handleKeyDown} />
       </div>
     {/each}
     {#if displayPatients.length == 0}

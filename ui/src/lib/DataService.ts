@@ -40,7 +40,7 @@ export async function fetchPatients() {
   let response = await fetch(`${server}/patient-list`);
   let patientsArray = await response.json();
   patientsArray.forEach((p: ViewPatient) => {
-    patients.set(p.id, p);
+    patients.set(p.id!, p);
   })
   updatePatientStore(patients!.values().toArray());
 }
@@ -83,11 +83,11 @@ export async function getProcedure(patientId: number, id: number): Promise<ViewP
 // Setters
 
 export async function updatePatient(patient: ViewPatient) {
-  patients!.set(patient.id, patient);
+  patients!.set(patient.id!, patient);
   updatePatientStore(patients!.values().toArray());
   console.log("update patient", patient);
 
-  await fetch(`${server}/patient`, {
+  await fetch(`${server}/patient/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patient)
@@ -96,7 +96,7 @@ export async function updatePatient(patient: ViewPatient) {
 
 export async function updatePatients(updated: Array<ViewPatient>) {
   updated.forEach((patient => {
-    patients!.set(patient.id, patient);
+    patients!.set(patient.id!, patient);
   }));
   updatePatientStore(patients!.values().toArray());
   console.log("update patient", updated);
@@ -109,10 +109,7 @@ export async function updatePatients(updated: Array<ViewPatient>) {
 }
 
 export async function addPatient(patient: ViewPatient) : Promise<ViewPatient> {
-  // TODO: add proper id
-  // patient.id = patients?.length! + Math.floor(Math.random() * 1000);
-
-  var response = await fetch(`${server}/patient`, {
+  var response = await fetch(`${server}/patient/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patient)

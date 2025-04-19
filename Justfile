@@ -26,6 +26,7 @@ build:
 
 build-linux $GOOS="linux":
     # Build the Go application
+    @just ui-build
     go build .
 
 run: build

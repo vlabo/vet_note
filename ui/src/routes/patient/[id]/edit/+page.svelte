@@ -18,27 +18,31 @@
 
   console.log(page.params);
   var types: Writable<Array<ViewSetting>> = settingsPatients;
-  var patient: ViewPatient = {};
+  var patient: ViewPatient = {
+    id: undefined,
+    type: null,
+    name: null,
+    gender: "unknown",
+    age: null,
+    chipId: null,
+    weight: null,
+    castrated: null,
+    folder: null,
+    indexFolder: null,
+    note: null,
+    owner: null,
+    ownerPhone: null,
+    procedures: [],
+  };
   var newMode = false;
   var deletePopupOpen = false;
   var castrated = false;
 
   onMount(() => {
     if (page.params.id === "new") {
-      patient = {
-        name: "",
-        gender: "unknown",
-        age: undefined,
-        chipId: undefined,
-        weight: undefined,
-        castrated: 0,
-        note: "",
-        owner: undefined,
-        ownerPhone: undefined,
-      };
       newMode = true;
       types.subscribe(($items) => {
-        if (patient.type === undefined) {
+        if (patient.type === null) {
           patient.type = $items[0].value;
         }
       });

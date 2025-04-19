@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { faGear } from "@fortawesome/free-solid-svg-icons";
+  import { faBars, faGear } from "@fortawesome/free-solid-svg-icons";
   import Icon from "$lib/icon.svelte";
   import ActionButton from "$lib/actionButton.svelte";
   import type { ViewPatient, ViewSetting } from "$lib/types";
@@ -7,7 +7,7 @@
   import { folders, patientsStore, updatePatients } from "$lib/DataService";
   import FolderList from "./Folder.svelte";
   import Patient from "./Patient.svelte";
-  import { dndzone } from "svelte-dnd-action";
+  import { dndzone, SOURCES, TRIGGERS } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import type { ViewPatientHighlighted } from "$lib/Utils";
   let patients: Array<ViewPatient> | Array<ViewPatientHighlighted> = [];
@@ -25,18 +25,35 @@
   $: displayPatients = searchQuery.length ? filteredPatients : patients;
   // var filteredPatient: any[] = [];
   var searchQuery = "";
+  let dragDisabled: boolean = true;
 
   function handleDnd(e: any) {
+    const {
+      items: _,
+      info: { source, trigger },
+    } = e.detail;
+
     displayPatients = e.detail.items;
     displayPatients.forEach((p: ViewPatient, index: number) => {
       p.folder = -1;
       p.indexFolder = index;
     });
+    if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
+      dragDisabled = true;
+    }
   }
 
   function handleDndFinalize(e: any) {
+    const {
+      items: _,
+      info: { source },
+    } = e.detail;
     handleDnd(e);
     updatePatients(displayPatients);
+
+    if (source === SOURCES.POINTER) {
+      dragDisabled = true;
+    }
   }
 
   function onSearch() {
@@ -96,6 +113,17 @@
 
     return highlighted;
   }
+  function startDrag(e: any) {
+    // preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
+    e.preventDefault();
+    dragDisabled = false;
+  }
+
+  function handleKeyDown(e: any) {
+    if ((e.key === "Enter" || e.key === " ") && dragDisabled) {
+      dragDisabled = false;
+    }
+  }
 </script>
 
 <header class="max-w-7xl mx-auto bg-white shadow flex items-center p-2">
@@ -119,14 +147,14 @@
 <div class="max-w-7xl mx-auto">
   <section
     class="min-h-8"
-    use:dndzone={{ items: displayPatients, flipDurationMs: 100 }}
+    use:dndzone={{ items: displayPatients, dragDisabled, flipDurationMs: 100 }}
     on:consider={handleDnd}
     on:finalize={handleDndFinalize}
   >
+    <!-- Patient List -->
     {#each displayPatients as p (p.id)}
-      <!-- Patient List -->
-      <div animate:flip={{ duration: 100 }}>
-        <Patient patient={p} />
+      <div animate:flip={{ duration: 100 }} class="flex items-center">
+        <Patient patient={p} {dragDisabled} {startDrag} {handleKeyDown} />
       </div>
     {/each}
   </section>

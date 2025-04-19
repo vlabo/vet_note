@@ -66,7 +66,8 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := viewPatient.ID.Get(); ok {
+	if id, ok := viewPatient.ID.Get(); ok {
+		slog.Info("Updating patient", "id", id)
 		// Update existing patient
 		err := db.UpdatePatient(viewPatient.AsSetter())
 		if err != nil {
@@ -77,6 +78,7 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Create new patient
+		slog.Info("Creating new patient")
 		id, err := db.CreatePatient(viewPatient.AsSetter())
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -413,7 +415,7 @@ func main() {
 	mux.HandleFunc("/v1/patient-types/", getPatientTypes)
 	mux.HandleFunc("/v1/procedure-types", getProcedureTypes)
 	mux.HandleFunc("/v1/patient-folder", getPatientFolders)
-	mux.HandleFunc("/v1/setting", handleSetting)
+	mux.HandleFunc("/v1/setting/", handleSetting)
 	mux.HandleFunc("/v1/settings", updateSettings)
 
 	subFS, err := fs.Sub(embeddedFiles, "ui/build")

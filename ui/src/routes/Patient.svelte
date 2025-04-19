@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "$lib/icon.svelte";
   import {
+    faBars,
     faMicrochip,
     faPhone,
     faUser,
@@ -9,20 +10,28 @@
   import { onMount } from "svelte";
 
   export var patient: any;
-  let elem: HTMLElement;
-  onMount(() => {
-    if (elem) {
-      elem.dataset.patientId = String(patient.id);
-    }
-  });
+  export var dragDisabled: boolean = true;
+  export var startDrag = (_: any) => {};
+  export var handleKeyDown = (_: any) => {};
 </script>
 
-<div bind:this={elem}>
+<div class="w-full flex items-center border-b border-gray-400">
+  <div
+    tabindex="0"
+    role="button"
+    aria-label="drag-handle"
+    style={dragDisabled ? "cursor: grab" : "cursor: grabbing"}
+    on:mousedown={startDrag}
+    on:touchstart={startDrag}
+    on:keydown={handleKeyDown}
+  >
+    <Icon icon={faBars} class="py-3 pl-2 pr-5 drag-handle" />
+  </div>
   <a
-    class="max-w-7xl mx-auto mb-2 cursor-pointer overflow-hidden"
+    class="flex-1 mx-auto max-w-7xl mb-2 cursor-pointer overflow-hidden"
     href={"/patient/" + patient.id}
   >
-    <div class="p-4 flex items-center space-x-4 border-b border-gray-400">
+    <div class="p-4 flex items-center space-x-4">
       <!-- Type -->
       <div class="w-1/5 font-medium text-gray-700">{patient.type}</div>
       <div class="flex-1 flex items-center text-gray-800">

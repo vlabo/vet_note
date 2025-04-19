@@ -18,7 +18,7 @@ export interface ViewProcedure {
   patientId: number | null;
 }
 export interface ViewPatient {
-  id: number;
+  id: number | undefined;
   type: string | null;
   name: string | null;
   gender: 'unknown' | 'male' | 'female';
@@ -34,7 +34,7 @@ export interface ViewPatient {
   procedures: ViewProcedure[];
 }
 export interface ViewSetting {
-  id: number;
+  id: number | undefined;
   type: 'PatientType' | 'ProcedureType' | 'PatientFolder';
   value: string | null;
   index: number | null;

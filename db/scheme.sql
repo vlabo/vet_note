@@ -40,5 +40,6 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- ALTER TABLE patients ADD COLUMN weight REAL;
+-- ALTER TABLE patients ADD COLUMN age REAL;
 -- ALTER TABLE patients ADD COLUMN folder NUMERIC DEFAULT -1;
 -- ALTER TABLE patients ADD COLUMN index_folder NUMERIC DEFAULT -1;

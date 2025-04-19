@@ -12,7 +12,7 @@
   import type { ViewSetting } from "$lib/types";
   import DeletePopup from "$lib/DeletePopup.svelte";
   import { deleteSetting } from "$lib/DataService";
-  import { dndzone } from "svelte-dnd-action";
+  import { dndzone, SOURCES, TRIGGERS } from "svelte-dnd-action";
 
   export let items = writable<Array<ViewSetting>>([]);
   export let title: string;
@@ -23,6 +23,7 @@
 
   let deletePopupIndex = -1;
   let newItem = "";
+  let dragDisabled = true;
 
   function addItem() {
     isAddingItem = true;
@@ -32,7 +33,7 @@
     console.log(settingType);
     items.update(($items: ViewSetting[]): ViewSetting[] => {
       $items.push({
-        id: -1,
+        id: undefined,
         value: newItem,
         type: settingType,
         index: $items.length,
@@ -45,17 +46,32 @@
   }
 
   function handleDnd(e: any) {
+    const {
+      items: newItems,
+      info: { source, trigger },
+    } = e.detail;
     items.update(() => {
-      e.detail.items.forEach((s: ViewSetting, index: number) => {
+      newItems.forEach((s: ViewSetting, index: number) => {
         s.index = index;
       });
-      return e.detail.items;
+      return newItems;
     });
+    if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
+      dragDisabled = true;
+    }
   }
 
   function handleDndFinalize(e: any) {
+    const {
+      items: _,
+      info: { source },
+    } = e.detail;
     handleDnd(e);
     onUpdate($items);
+
+    if (source === SOURCES.POINTER) {
+      dragDisabled = true;
+    }
   }
 
   export var onUpdate = (_: ViewSetting[]) => {};
@@ -71,18 +87,38 @@
       return $items;
     });
   }
+
+  function startDrag(e: any) {
+    // preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
+    e.preventDefault();
+    dragDisabled = false;
+  }
+  function handleKeyDown(e: any) {
+    if ((e.key === "Enter" || e.key === " ") && dragDisabled)
+      dragDisabled = false;
+  }
 </script>
 
 <div class="mt-4 mb-6">
   <h2 class="text-gray-700 font-medium border-b border-gray-400">{title}</h2>
   <section
-    use:dndzone={{ items: $items, type: settingType }}
+    use:dndzone={{ items: $items, dragDisabled, type: settingType }}
     on:consider={handleDnd}
     on:finalize={handleDndFinalize}
   >
     {#each $items as item, index (item.id)}
       <div class="flex items-center border-b border-gray-400 bg-white">
-        <Icon icon={faBars} class="py-3 pl-2 pr-10 drag-handle" />
+        <div
+          tabindex="0"
+          role="button"
+          aria-label="drag-handle"
+          style={dragDisabled ? "cursor: grab" : "cursor: grabbing"}
+          on:mousedown={startDrag}
+          on:touchstart={startDrag}
+          on:keydown={handleKeyDown}
+        >
+          <Icon icon={faBars} class="py-3 pl-2 pr-10 drag-handle" />
+        </div>
         <span class="text-gray-800">{item.value}</span>
         <button
           on:click={() => (deletePopupIndex = index)}

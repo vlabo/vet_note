@@ -25,5 +25,5 @@ node_modules
 server/target
 .angular/cache/18.1.3/vet_note_ng
 dist
-ui/static
 ui/.svelte-kit
+ui/build

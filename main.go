@@ -371,7 +371,7 @@ func loggingMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-//go:embed ui/static/*
+//go:embed ui/build/*
 var embeddedFiles embed.FS
 
 var (
@@ -416,7 +416,7 @@ func main() {
 	mux.HandleFunc("/v1/setting", handleSetting)
 	mux.HandleFunc("/v1/settings", updateSettings)
 
-	subFS, err := fs.Sub(embeddedFiles, "ui/static")
+	subFS, err := fs.Sub(embeddedFiles, "ui/build")
 	if err != nil {
 		fmt.Printf("%s", err)
 		panic("failed to initialize www")

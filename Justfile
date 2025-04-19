@@ -24,6 +24,10 @@ build:
     # Build the Go application
     go build .
 
+build-linux $GOOS="linux":
+    # Build the Go application
+    go build .
+
 run: build
      ./vet_note -db backup1.db -port 8001 -cors -dbLog
 
